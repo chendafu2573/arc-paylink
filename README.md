@@ -9,6 +9,9 @@ Arc Paylink 是一个运行在 Arc Testnet 上的可编程 USDC 发票工具。�
 
 - Live App: <https://13-212-95-171.sslip.io>
 - Builder Submission: [docs/builder-submission.md](docs/builder-submission.md)
+- Checkpoint Draft: [docs/checkpoint-submission.md](docs/checkpoint-submission.md)
+- Demo Script: [docs/demo-script.md](docs/demo-script.md)
+- Pitch Deck: [outputs/arc-paylink-pitch.pptx](outputs/arc-paylink-pitch.pptx)
 
 ## 为什么做这个项目
 
@@ -35,6 +38,12 @@ npm run dev
 
 ```bash
 npm run build
+```
+
+验证公开部署合约与验收订单：
+
+```bash
+npm run contract:verify
 ```
 
 ## 网络参数

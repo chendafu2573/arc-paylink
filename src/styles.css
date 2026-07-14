@@ -66,6 +66,11 @@ label small { color: var(--muted); }
 .primary { color: var(--ink); background: var(--lime); }
 .secondary { color: var(--ink); background: transparent; }
 .release-button { width: 100%; min-height: 48px; margin-top: 10px; color: var(--paper); background: var(--ink); border: 0; font-weight: 600; }
+.escrow-card { margin-top: 18px; padding: 16px; border: 1px solid var(--ink); background: rgba(200,255,61,.12); }
+.escrow-card > div { display: flex; justify-content: space-between; gap: 16px; padding: 7px 0; font-size: 12px; }
+.escrow-card > div span { color: var(--muted); }
+.escrow-card > a { display: inline-block; margin: 8px 0 3px; color: var(--muted); font-size: 11px; }
+.refund-button { width: 100%; min-height: 48px; margin-top: 10px; color: var(--ink); background: transparent; border: 1px solid var(--ink); font-weight: 600; }
 .status { margin-top: 18px; padding: 16px; border: 1px solid var(--line); display: flex; gap: 12px; font-size: 13px; }
 .status > span { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: var(--ink); color: var(--paper); }
 .status strong, .status a { display: block; }

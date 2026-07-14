@@ -18,6 +18,18 @@ import { arcTestnet, publicClient } from "./arc";
 
 export const escrowContract = import.meta.env.VITE_ESCROW_CONTRACT_ADDRESS as Address;
 const escrowAbi = artifact.abi as Abi;
+const storageKey = "arc-paylink:escrows";
+
+export type EscrowStatus = "funded" | "released" | "refunded";
+
+export type EscrowRecord = {
+  paymentId: Hex;
+  payer: Address;
+  payee: Address;
+  amount: string;
+  refundAfter: number;
+  status: EscrowStatus;
+};
 
 function walletClient() {
   if (!window.ethereum) throw new Error("钱包未连接。");
@@ -51,7 +63,7 @@ export async function fundEscrow(
     args: [paymentId, payee, refundAfter],
     value: parseEther(amount),
   });
-  return { hash, paymentId, refundAfter };
+  return { hash, paymentId, refundAfter, payer: account };
 }
 
 export async function releaseEscrow(paymentId: Hex): Promise<Hash> {
@@ -65,4 +77,50 @@ export async function releaseEscrow(paymentId: Hex): Promise<Hash> {
     functionName: "release",
     args: [paymentId],
   });
+}
+
+export async function refundEscrow(paymentId: Hex): Promise<Hash> {
+  const client = walletClient();
+  const [account] = await client.requestAddresses();
+  return client.writeContract({
+    account,
+    chain: arcTestnet,
+    address: escrowContract,
+    abi: escrowAbi,
+    functionName: "refund",
+    args: [paymentId],
+  });
+}
+
+export async function readEscrow(paymentId: Hex): Promise<EscrowRecord | undefined> {
+  const result = await publicClient.readContract({
+    address: escrowContract,
+    abi: escrowAbi,
+    functionName: "payments",
+    args: [paymentId],
+  }) as readonly [Address, Address, bigint, bigint, number];
+  const [payer, payee, amount, refundAfter, rawStatus] = result;
+  if (rawStatus === 0) return undefined;
+  const statuses: Record<number, EscrowStatus> = { 1: "funded", 2: "released", 3: "refunded" };
+  return {
+    paymentId,
+    payer,
+    payee,
+    amount: amount.toString(),
+    refundAfter: Number(refundAfter),
+    status: statuses[rawStatus],
+  };
+}
+
+export function loadEscrows(): EscrowRecord[] {
+  try {
+    return JSON.parse(localStorage.getItem(storageKey) ?? "[]") as EscrowRecord[];
+  } catch {
+    return [];
+  }
+}
+
+export function saveEscrow(record: EscrowRecord) {
+  const records = loadEscrows().filter((item) => item.paymentId !== record.paymentId);
+  localStorage.setItem(storageKey, JSON.stringify([record, ...records].slice(0, 10)));
 }

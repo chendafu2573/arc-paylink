@@ -4,7 +4,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
-import { isAddress, type Address, type Hash, type Hex } from "viem";
+import { formatEther, isAddress, type Address, type Hash } from "viem";
 import {
   arcTestnet,
   compactAddress,
@@ -12,7 +12,16 @@ import {
   sendPayment,
   waitForPayment,
 } from "./arc";
-import { fundEscrow, releaseEscrow } from "./escrow";
+import {
+  fundEscrow,
+  escrowContract,
+  loadEscrows,
+  readEscrow,
+  refundEscrow,
+  releaseEscrow,
+  saveEscrow,
+  type EscrowRecord,
+} from "./escrow";
 
 type Status = "idle" | "connecting" | "signing" | "confirming" | "success" | "error";
 
@@ -38,7 +47,8 @@ export default function App() {
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
   const [hash, setHash] = useState<Hash>();
-  const [escrowId, setEscrowId] = useState<Hex>();
+  const [escrow, setEscrow] = useState<EscrowRecord>();
+  const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
   const [copied, setCopied] = useState(false);
   const [qrCode, setQrCode] = useState({ url: "", data: "" });
 
@@ -62,6 +72,19 @@ export default function App() {
       color: { dark: "#07110d", light: "#f4f1e8" },
     }).then((data) => setQrCode({ url: requestUrl, data }));
   }, [requestUrl]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
+    const latest = loadEscrows()[0];
+    if (latest) {
+      readEscrow(latest.paymentId).then((current) => {
+        if (!current) return;
+        setEscrow(current);
+        saveEscrow(current);
+      }).catch(() => setEscrow(latest));
+    }
+    return () => window.clearInterval(timer);
+  }, []);
 
   async function handleConnect() {
     setStatus("connecting");
@@ -111,7 +134,18 @@ export default function App() {
         ? await fundEscrow(recipient as Address, amount, note.trim())
         : undefined;
       const txHash = protectedPayment?.hash ?? await sendPayment(recipient as Address, amount);
-      setEscrowId(protectedPayment?.paymentId);
+      if (protectedPayment) {
+        const record: EscrowRecord = {
+          paymentId: protectedPayment.paymentId,
+          payer: protectedPayment.payer,
+          payee: recipient as Address,
+          amount: parseAmountToWei(amount),
+          refundAfter: protectedPayment.refundAfter,
+          status: "funded",
+        };
+        setEscrow(record);
+        saveEscrow(record);
+      }
       setHash(txHash);
       setStatus("confirming");
       setMessage("交易已发送，正在等待 Arc Testnet 确认。");
@@ -126,11 +160,11 @@ export default function App() {
   }
 
   async function handleRelease() {
-    if (!escrowId) return;
+    if (!escrow) return;
     setStatus("signing");
     setMessage("请在钱包中确认释放托管资金。");
     try {
-      const txHash = await releaseEscrow(escrowId);
+      const txHash = await releaseEscrow(escrow.paymentId);
       setHash(txHash);
       setStatus("confirming");
       setMessage("释放交易已发送，正在等待 Arc Testnet 确认。");
@@ -138,12 +172,44 @@ export default function App() {
       if (receipt.status !== "success") throw new Error("释放交易执行失败。");
       setStatus("success");
       setMessage("托管资金已经释放给收款方。");
-      setEscrowId(undefined);
+      const updated = { ...escrow, status: "released" as const };
+      setEscrow(updated);
+      saveEscrow(updated);
     } catch (error) {
       setStatus("error");
       setMessage(friendlyError(error));
     }
   }
+
+  async function handleRefund() {
+    if (!escrow) return;
+    setStatus("signing");
+    setMessage("请在钱包中确认到期退款交易。");
+    try {
+      const txHash = await refundEscrow(escrow.paymentId);
+      setHash(txHash);
+      setStatus("confirming");
+      setMessage("退款交易已发送，正在等待 Arc Testnet 确认。");
+      const receipt = await waitForPayment(txHash);
+      if (receipt.status !== "success") throw new Error("退款交易执行失败。");
+      const updated = { ...escrow, status: "refunded" as const };
+      setEscrow(updated);
+      saveEscrow(updated);
+      setStatus("success");
+      setMessage("托管资金已经原路退回付款钱包。");
+    } catch (error) {
+      setStatus("error");
+      setMessage(friendlyError(error));
+    }
+  }
+
+  function parseAmountToWei(value: string) {
+    const [whole, fraction = ""] = value.split(".");
+    return `${whole}${fraction.padEnd(18, "0").slice(0, 18)}`.replace(/^0+(?=\d)/, "");
+  }
+
+  const refundRemaining = escrow?.status === "funded" ? Math.max(0, escrow.refundAfter - now) : 0;
+  const refundCountdown = `${String(Math.floor(refundRemaining / 3600)).padStart(2, "0")}:${String(Math.floor(refundRemaining % 3600 / 60)).padStart(2, "0")}:${String(refundRemaining % 60).padStart(2, "0")}`;
 
   const isBusy = ["connecting", "signing", "confirming"].includes(status);
 
@@ -208,7 +274,14 @@ export default function App() {
             </button>
             <button className="secondary" onClick={handleCopy} disabled={!requestUrl}>{copied ? "已复制" : "复制收款链接"}</button>
           </div>
-          {escrowId && status === "success" && <button className="release-button" onClick={handleRelease}>确认交付并释放资金</button>}
+          {escrow && <div className="escrow-card">
+            <div><span>最近托管订单</span><strong>{escrow.status === "funded" ? "托管中" : escrow.status === "released" ? "已放款" : "已退款"}</strong></div>
+            <div><span>金额</span><strong>{formatEther(BigInt(escrow.amount))} USDC</strong></div>
+            <div><span>退款时间</span><strong>{escrow.status === "funded" ? refundRemaining > 0 ? refundCountdown : "现在可退款" : "—"}</strong></div>
+            <a href={`${arcTestnet.blockExplorers.default.url}/address/${escrowContract}`} target="_blank" rel="noreferrer">查看托管合约 ↗</a>
+            {escrow.status === "funded" && refundRemaining > 0 && <button className="release-button" onClick={handleRelease} disabled={isBusy}>确认交付并释放资金</button>}
+            {escrow.status === "funded" && refundRemaining === 0 && <button className="refund-button" onClick={handleRefund} disabled={isBusy}>取回到期托管资金</button>}
+          </div>}
 
           {message && <div className={`status ${status}`} role="status">
             <span>{status === "success" ? "✓" : status === "error" ? "!" : "↗"}</span>
