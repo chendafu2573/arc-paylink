@@ -1,0 +1,17 @@
+# 本文件记录 Arc Paylink 的生产 HTTPS 静态站点配置，便于 VPS 灾后恢复。
+# sslip.io 域名由 Caddy 自动申请证书；公网 IP 仅作为 HTTP 兼容入口。
+13-212-95-171.sslip.io {
+	root * /var/www/arc-paylink
+	encode zstd gzip
+	try_files {path} /index.html
+	file_server
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+	}
+}
+
+http://13.212.95.171 {
+	redir https://13-212-95-171.sslip.io{uri} permanent
+}

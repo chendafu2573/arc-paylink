@@ -1,0 +1,13 @@
+# 本文件隔离依赖、构建产物和本地密钥，避免敏感信息进入版本库。
+# 新增部署工具时同步补充其缓存目录，不忽略 Builder 证明材料。
+node_modules/
+dist/
+.env
+.env.local
+.env.*.local
+!.env.example
+*.log
+*.tsbuildinfo
+.DS_Store
+*.pem
+*.key
