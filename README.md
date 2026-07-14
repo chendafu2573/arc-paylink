@@ -7,6 +7,9 @@
 
 Arc Paylink 是一个运行在 Arc Testnet 上的 USDC 收款链接工具。收款人填写地址、金额和备注即可生成可分享链接；付款人在自己的浏览器钱包中签名，服务器不接触钱包私钥。
 
+- Live App: <https://13-212-95-171.sslip.io>
+- Builder Submission: [docs/builder-submission.md](docs/builder-submission.md)
+
 ## 为什么做这个项目
 
 小商户、自由职业者和 AI Agent 需要一个比复制钱包地址更清晰的收款体验。Arc 以 USDC 作为原生 Gas Token，适合把金额明确、链上可验证的支付请求压缩成一个链接。
