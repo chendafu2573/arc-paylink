@@ -31,6 +31,7 @@ nav { height: 92px; display: flex; align-items: center; justify-content: space-b
 .network { font: 12px "DM Mono"; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
 .network i { width: 7px; height: 7px; border-radius: 50%; background: #54c66a; box-shadow: 0 0 0 4px rgba(84,198,106,.15); }
 .wallet-button { color: var(--paper); background: var(--ink); border: 0; padding: 11px 17px; border-radius: 4px; font: 12px "DM Mono"; }
+.language-button { padding: 8px 10px; color: var(--ink); background: transparent; border: 1px solid var(--line); font: 10px "DM Mono"; }
 
 .hero { padding: 88px 0 76px; max-width: 920px; }
 .eyebrow { font: 12px "DM Mono"; letter-spacing: .16em; margin: 0 0 26px; }

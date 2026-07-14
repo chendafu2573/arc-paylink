@@ -36,13 +36,14 @@ const escrowParam = params.get("escrow");
 const initialEscrowId = isPaymentId(escrowParam) ? escrowParam : undefined;
 const initialEscrows = loadEscrows();
 
-function friendlyError(error: unknown) {
+function friendlyError(error: unknown, language: "zh" | "en") {
   const candidate = error as { code?: number; shortMessage?: string; message?: string };
-  if (candidate.code === 4001) return "你取消了钱包请求，没有发生交易。";
-  return candidate.shortMessage || candidate.message || "操作失败，请稍后重试。";
+  if (candidate.code === 4001) return language === "zh" ? "你取消了钱包请求，没有发生交易。" : "You rejected the wallet request. No transaction was sent.";
+  return candidate.shortMessage || candidate.message || (language === "zh" ? "操作失败，请稍后重试。" : "The operation failed. Please try again.");
 }
 
 export default function App() {
+  const [language, setLanguage] = useState<"zh" | "en">(() => navigator.language.toLowerCase().startsWith("zh") ? "zh" : "en");
   const [recipient, setRecipient] = useState(initialRecipient);
   const [amount, setAmount] = useState(initialAmount);
   const [note, setNote] = useState(initialNote);
@@ -58,6 +59,7 @@ export default function App() {
   const [copied, setCopied] = useState(false);
   const [escrowLinkCopied, setEscrowLinkCopied] = useState(false);
   const [qrCode, setQrCode] = useState({ url: "", data: "" });
+  const tr = (zh: string, en: string) => language === "zh" ? zh : en;
 
   const validRecipient = isAddress(recipient);
   const validAmount = Number(amount) > 0 && Number.isFinite(Number(amount));
@@ -113,7 +115,7 @@ export default function App() {
       if (!recipient) setRecipient(connected.account);
     } catch (error) {
       setStatus("error");
-      setMessage(friendlyError(error));
+      setMessage(friendlyError(error, language));
     }
   }
 
@@ -151,7 +153,7 @@ export default function App() {
   async function handlePay() {
     if (!validRecipient || !validAmount) return;
     setStatus("signing");
-    setMessage("请在钱包中确认这笔测试网交易。");
+    setMessage(tr("请在钱包中确认这笔测试网交易。", "Confirm this testnet transaction in your wallet."));
     setHash(undefined);
     try {
       if (!account) {
@@ -178,49 +180,49 @@ export default function App() {
       }
       setHash(txHash);
       setStatus("confirming");
-      setMessage("交易已发送，正在等待 Arc Testnet 确认。");
+      setMessage(tr("交易已发送，正在等待 Arc Testnet 确认。", "Transaction sent. Waiting for Arc Testnet confirmation."));
       const receipt = await waitForPayment(txHash);
       if (receipt.status !== "success") throw new Error("交易执行失败。");
       setStatus("success");
-      setMessage(paymentMode === "protected" ? "资金已进入托管，确认交付后再释放给收款方。" : "支付成功，链上记录已经确认。");
+      setMessage(paymentMode === "protected" ? tr("资金已进入托管，确认交付后再释放给收款方。", "Funds are in escrow. Release them after delivery.") : tr("支付成功，链上记录已经确认。", "Payment confirmed onchain."));
     } catch (error) {
       setStatus("error");
-      setMessage(friendlyError(error));
+      setMessage(friendlyError(error, language));
     }
   }
 
   async function handleRelease() {
     if (!escrow) return;
     setStatus("signing");
-    setMessage("请在钱包中确认释放托管资金。");
+    setMessage(tr("请在钱包中确认释放托管资金。", "Confirm the escrow release in your wallet."));
     try {
       const txHash = await releaseEscrow(escrow.paymentId);
       setHash(txHash);
       setStatus("confirming");
-      setMessage("释放交易已发送，正在等待 Arc Testnet 确认。");
+      setMessage(tr("释放交易已发送，正在等待 Arc Testnet 确认。", "Release sent. Waiting for Arc Testnet confirmation."));
       const receipt = await waitForPayment(txHash);
       if (receipt.status !== "success") throw new Error("释放交易执行失败。");
       setStatus("success");
-      setMessage("托管资金已经释放给收款方。");
+      setMessage(tr("托管资金已经释放给收款方。", "Escrow funds were released to the recipient."));
       const updated = { ...escrow, status: "released" as const };
       setEscrow(updated);
       setEscrows((current) => current.map((item) => item.paymentId === updated.paymentId ? updated : item));
       saveEscrow(updated);
     } catch (error) {
       setStatus("error");
-      setMessage(friendlyError(error));
+      setMessage(friendlyError(error, language));
     }
   }
 
   async function handleRefund() {
     if (!escrow) return;
     setStatus("signing");
-    setMessage("请在钱包中确认到期退款交易。");
+    setMessage(tr("请在钱包中确认到期退款交易。", "Confirm the expired escrow refund in your wallet."));
     try {
       const txHash = await refundEscrow(escrow.paymentId);
       setHash(txHash);
       setStatus("confirming");
-      setMessage("退款交易已发送，正在等待 Arc Testnet 确认。");
+      setMessage(tr("退款交易已发送，正在等待 Arc Testnet 确认。", "Refund sent. Waiting for Arc Testnet confirmation."));
       const receipt = await waitForPayment(txHash);
       if (receipt.status !== "success") throw new Error("退款交易执行失败。");
       const updated = { ...escrow, status: "refunded" as const };
@@ -228,10 +230,10 @@ export default function App() {
       setEscrows((current) => current.map((item) => item.paymentId === updated.paymentId ? updated : item));
       saveEscrow(updated);
       setStatus("success");
-      setMessage("托管资金已经原路退回付款钱包。");
+      setMessage(tr("托管资金已经原路退回付款钱包。", "Escrow funds were returned to the payer."));
     } catch (error) {
       setStatus("error");
-      setMessage(friendlyError(error));
+      setMessage(friendlyError(error, language));
     }
   }
 
@@ -253,19 +255,20 @@ export default function App() {
           <span>Arc Paylink</span>
         </a>
         <div className="nav-actions">
+          <button className="language-button" onClick={() => setLanguage(language === "zh" ? "en" : "zh")}>{language === "zh" ? "EN" : "中文"}</button>
           <span className="network"><i /> Arc Testnet</span>
           <button className="wallet-button" onClick={handleConnect} disabled={isBusy}>
-            {account ? compactAddress(account) : status === "connecting" ? "连接中…" : "连接钱包"}
+            {account ? compactAddress(account) : status === "connecting" ? tr("连接中…", "Connecting…") : tr("连接钱包", "Connect wallet")}
           </button>
         </div>
       </nav>
 
       <section className="hero">
         <p className="eyebrow">STABLECOIN PAYMENT LINKS</p>
-        <h1>一句话收款，<br /><em>一秒钟确认。</em></h1>
-        <p className="intro">无需后端保存私钥。创建一个 Arc Testnet USDC 收款链接，让付款人在自己的钱包中完成签名。</p>
+        <h1>{tr("一句话收款，", "Payment requests,")}<br /><em>{tr("一秒钟确认。", "programmed onchain.")}</em></h1>
+        <p className="intro">{tr("无需后端保存私钥。创建一个 Arc Testnet USDC 收款链接，让付款人在自己的钱包中完成签名。", "Create a native USDC invoice with direct settlement or delivery-protected escrow. Every transaction stays in the payer’s wallet.")}</p>
         <div className="proof-row">
-          <span>USDC 原生 Gas</span><span>钱包内签名</span><span>ArcScan 可验证</span>
+          <span>{tr("USDC 原生 Gas", "USDC native gas")}</span><span>{tr("钱包内签名", "Wallet signed")}</span><span>{tr("ArcScan 可验证", "ArcScan verified")}</span>
         </div>
       </section>
 
@@ -273,86 +276,86 @@ export default function App() {
         <div className="form-panel">
           <div className="section-heading">
             <span className="step-number">01</span>
-            <div><h2>创建收款请求</h2><p>填入收款地址、金额和备注。</p></div>
+            <div><h2>{tr("创建收款请求", "Create an invoice")}</h2><p>{tr("填入收款地址、金额和备注。", "Set the recipient, amount and settlement rules.")}</p></div>
           </div>
 
-          <label>收款地址</label>
+          <label>{tr("收款地址", "Recipient")}</label>
           <div className={`field ${recipient && !validRecipient ? "invalid" : ""}`}>
             <input value={recipient} onChange={(event) => setRecipient(event.target.value.trim())} placeholder="0x…" spellCheck={false} />
-            {account && <button onClick={() => setRecipient(account)}>使用我的</button>}
+            {account && <button onClick={() => setRecipient(account)}>{tr("使用我的", "Use mine")}</button>}
           </div>
 
-          <label>金额</label>
+          <label>{tr("金额", "Amount")}</label>
           <div className={`field amount-field ${amount && !validAmount ? "invalid" : ""}`}>
             <input type="number" min="0" step="0.01" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="25.00" />
             <span>USDC</span>
           </div>
 
-          <label>付款方式</label>
+          <label>{tr("付款方式", "Settlement mode")}</label>
           <div className="mode-switch" role="group" aria-label="付款方式">
-            <button className={paymentMode === "direct" ? "active" : ""} onClick={() => setPaymentMode("direct")}>直接支付<small>即时到账</small></button>
-            <button className={paymentMode === "protected" ? "active" : ""} onClick={() => setPaymentMode("protected")}>受保护支付<small>确认交付后释放</small></button>
+            <button className={paymentMode === "direct" ? "active" : ""} onClick={() => setPaymentMode("direct")}>{tr("直接支付", "Direct")}<small>{tr("即时到账", "Settle immediately")}</small></button>
+            <button className={paymentMode === "protected" ? "active" : ""} onClick={() => setPaymentMode("protected")}>{tr("受保护支付", "Protected")}<small>{tr("确认交付后释放", "Release after delivery")}</small></button>
           </div>
 
-          <label>备注 <small>选填</small></label>
+          <label>{tr("备注", "Note")} <small>{tr("选填", "Optional")}</small></label>
           <div className="field">
             <input maxLength={80} value={note} onChange={(event) => setNote(event.target.value)} placeholder="设计服务 / 订单 #1042" />
           </div>
 
-          {account && <p className="balance">当前钱包余额：{balance} USDC</p>}
+          {account && <p className="balance">{tr("当前钱包余额", "Wallet balance")}: {balance} USDC</p>}
           <div className="actions">
             <button className="primary" onClick={handlePay} disabled={!validRecipient || !validAmount || isBusy}>
-              {status === "signing" ? "等待钱包确认…" : status === "confirming" ? "链上确认中…" : paymentMode === "protected" ? "存入 USDC 托管" : "支付这笔请求"}
+              {status === "signing" ? tr("等待钱包确认…", "Confirm in wallet…") : status === "confirming" ? tr("链上确认中…", "Confirming onchain…") : paymentMode === "protected" ? tr("存入 USDC 托管", "Fund USDC escrow") : tr("支付这笔请求", "Pay this invoice")}
             </button>
-            <button className="secondary" onClick={handleCopy} disabled={!requestUrl}>{copied ? "已复制" : "复制收款链接"}</button>
+            <button className="secondary" onClick={handleCopy} disabled={!requestUrl}>{copied ? tr("已复制", "Copied") : tr("复制收款链接", "Copy invoice link")}</button>
           </div>
           {escrow && <div className="escrow-card">
-            <div><span>最近托管订单</span><strong>{escrow.status === "funded" ? "托管中" : escrow.status === "released" ? "已放款" : "已退款"}</strong></div>
-            <div><span>金额</span><strong>{formatEther(BigInt(escrow.amount))} USDC</strong></div>
-            <div><span>付款方</span><strong>{compactAddress(escrow.payer)}</strong></div>
-            <div><span>收款方</span><strong>{compactAddress(escrow.payee)}</strong></div>
-            <div><span>退款时间</span><strong>{escrow.status === "funded" ? refundRemaining > 0 ? refundCountdown : "现在可退款" : "—"}</strong></div>
+            <div><span>{tr("最近托管订单", "Selected escrow")}</span><strong>{escrow.status === "funded" ? tr("托管中", "Funded") : escrow.status === "released" ? tr("已放款", "Released") : tr("已退款", "Refunded")}</strong></div>
+            <div><span>{tr("金额", "Amount")}</span><strong>{formatEther(BigInt(escrow.amount))} USDC</strong></div>
+            <div><span>{tr("付款方", "Payer")}</span><strong>{compactAddress(escrow.payer)}</strong></div>
+            <div><span>{tr("收款方", "Payee")}</span><strong>{compactAddress(escrow.payee)}</strong></div>
+            <div><span>{tr("退款时间", "Refund window")}</span><strong>{escrow.status === "funded" ? refundRemaining > 0 ? refundCountdown : tr("现在可退款", "Refund available") : "—"}</strong></div>
             <div className="escrow-links">
-              <a href={`${arcTestnet.blockExplorers.default.url}/address/${escrowContract}`} target="_blank" rel="noreferrer">查看托管合约 ↗</a>
-              <button onClick={handleEscrowLinkCopy}>{escrowLinkCopied ? "状态链接已复制" : "复制状态链接"}</button>
+              <a href={`${arcTestnet.blockExplorers.default.url}/address/${escrowContract}`} target="_blank" rel="noreferrer">{tr("查看托管合约 ↗", "View contract ↗")}</a>
+              <button onClick={handleEscrowLinkCopy}>{escrowLinkCopied ? tr("状态链接已复制", "Status link copied") : tr("复制状态链接", "Copy status link")}</button>
             </div>
-            {escrow.status === "funded" && refundRemaining > 0 && <button className="release-button" onClick={handleRelease} disabled={isBusy}>确认交付并释放资金</button>}
-            {escrow.status === "funded" && refundRemaining === 0 && <button className="refund-button" onClick={handleRefund} disabled={isBusy}>取回到期托管资金</button>}
+            {escrow.status === "funded" && refundRemaining > 0 && <button className="release-button" onClick={handleRelease} disabled={isBusy}>{tr("确认交付并释放资金", "Confirm delivery and release")}</button>}
+            {escrow.status === "funded" && refundRemaining === 0 && <button className="refund-button" onClick={handleRefund} disabled={isBusy}>{tr("取回到期托管资金", "Refund expired escrow")}</button>}
           </div>}
 
           {escrows.length > 0 && <div className="escrow-history">
-            <div className="history-heading"><strong>托管订单历史</strong><span>链上状态</span></div>
+            <div className="history-heading"><strong>{tr("托管订单历史", "Escrow history")}</strong><span>{tr("链上状态", "Onchain status")}</span></div>
             {escrows.slice(0, 5).map((item) => <button key={item.paymentId} className={item.paymentId === escrow?.paymentId ? "active" : ""} onClick={() => setEscrow(item)}>
               <span><strong>{formatEther(BigInt(item.amount))} USDC</strong><small>{item.paymentId.slice(0, 10)}…{item.paymentId.slice(-6)}</small></span>
-              <em>{item.status === "funded" ? "托管中" : item.status === "released" ? "已放款" : "已退款"}</em>
+              <em>{item.status === "funded" ? tr("托管中", "Funded") : item.status === "released" ? tr("已放款", "Released") : tr("已退款", "Refunded")}</em>
             </button>)}
           </div>}
 
           {message && <div className={`status ${status}`} role="status">
             <span>{status === "success" ? "✓" : status === "error" ? "!" : "↗"}</span>
-            <div><strong>{message}</strong>{hash && <a href={`${arcTestnet.blockExplorers.default.url}/tx/${hash}`} target="_blank" rel="noreferrer">在 ArcScan 查看交易 ↗</a>}</div>
+            <div><strong>{message}</strong>{hash && <a href={`${arcTestnet.blockExplorers.default.url}/tx/${hash}`} target="_blank" rel="noreferrer">{tr("在 ArcScan 查看交易 ↗", "View transaction on ArcScan ↗")}</a>}</div>
           </div>}
         </div>
 
         <aside className="preview-panel">
           <div className="section-heading">
             <span className="step-number">02</span>
-            <div><h2>分享付款页面</h2><p>链接中的信息公开透明。</p></div>
+            <div><h2>{tr("分享付款页面", "Share the invoice")}</h2><p>{tr("链接中的信息公开透明。", "Payment context travels with the link.")}</p></div>
           </div>
           <div className="receipt-card">
             <div className="receipt-top"><span>PAYMENT REQUEST</span><span className="live-dot">LIVE</span></div>
             <div className="receipt-amount"><span>{validAmount ? amount : "0.00"}</span><small>USDC</small></div>
-            <div className="receipt-line"><span>收款方</span><strong>{validRecipient ? compactAddress(recipient) : "等待地址"}</strong></div>
-            <div className="receipt-line"><span>网络</span><strong>Arc Testnet</strong></div>
-            <div className="receipt-line"><span>结算</span><strong>{paymentMode === "protected" ? "24h 托管保护" : "即时到账"}</strong></div>
-            <div className="receipt-line"><span>备注</span><strong>{note || "—"}</strong></div>
-            <div className="qr-wrap">{qrCode.url === requestUrl ? <img src={qrCode.data} alt="收款链接二维码" /> : <div className="qr-placeholder">填写有效信息<br />生成二维码</div>}</div>
+            <div className="receipt-line"><span>{tr("收款方", "Recipient")}</span><strong>{validRecipient ? compactAddress(recipient) : tr("等待地址", "Add address")}</strong></div>
+            <div className="receipt-line"><span>{tr("网络", "Network")}</span><strong>Arc Testnet</strong></div>
+            <div className="receipt-line"><span>{tr("结算", "Settlement")}</span><strong>{paymentMode === "protected" ? tr("24h 托管保护", "24h escrow protection") : tr("即时到账", "Immediate")}</strong></div>
+            <div className="receipt-line"><span>{tr("备注", "Note")}</span><strong>{note || "—"}</strong></div>
+            <div className="qr-wrap">{qrCode.url === requestUrl ? <img src={qrCode.data} alt={tr("收款链接二维码", "Invoice QR code")} /> : <div className="qr-placeholder">{tr("填写有效信息", "Enter valid details")}<br />{tr("生成二维码", "to create a QR code")}</div>}</div>
           </div>
-          <p className="disclaimer">仅限测试网。测试 USDC 没有现实货币价值。</p>
+          <p className="disclaimer">{tr("仅限测试网。测试 USDC 没有现实货币价值。", "Testnet only. Test USDC has no real-world value.")}</p>
         </aside>
       </section>
 
-      <footer><span>Built on Arc Testnet</span><a href="https://docs.arc.network" target="_blank" rel="noreferrer">开发文档 ↗</a><a href="https://faucet.circle.com" target="_blank" rel="noreferrer">领取测试 USDC ↗</a></footer>
+      <footer><span>Built on Arc Testnet</span><a href="https://docs.arc.network" target="_blank" rel="noreferrer">{tr("开发文档 ↗", "Developer docs ↗")}</a><a href="https://faucet.circle.com" target="_blank" rel="noreferrer">{tr("领取测试 USDC ↗", "Get test USDC ↗")}</a></footer>
     </main>
   );
 }
