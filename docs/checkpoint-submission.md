@@ -28,6 +28,7 @@ A wallet address does not contain payment context or delivery conditions. Existi
 - Live: https://13-212-95-171.sslip.io
 - Live proof: https://13-212-95-171.sslip.io/?escrow=0x51a8242e1a04a1557b18a85d3e2da62d9b2eff92e1657b389ab331392b5c5c6f
 - Source: https://github.com/chendafu2573/arc-paylink
+- Demo video: https://github.com/chendafu2573/arc-paylink/blob/main/outputs/arc-paylink-demo.mp4
 - Contract: https://testnet.arcscan.app/address/0xcc5ae59000d5b3d1886317f7554dc5894aea6c4d
 - Fund transaction: https://testnet.arcscan.app/tx/0x8eaa28e4ac6431ff73d21b1c92338b3a1dbe3533cd5d4876c658dcd917779c74
 - Release transaction: https://testnet.arcscan.app/tx/0x05f37466ad220a1639cc82f427c9b4b5cc43041dc6751ea6fc1976be8b8c97c7

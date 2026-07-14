@@ -13,6 +13,7 @@ Arc Paylink 是一个运行在 Arc Testnet 上的可编程 USDC 发票工具。�
 - Checkpoint Draft: [docs/checkpoint-submission.md](docs/checkpoint-submission.md)
 - Demo Script: [docs/demo-script.md](docs/demo-script.md)
 - Pitch Deck: [outputs/arc-paylink-pitch.pptx](outputs/arc-paylink-pitch.pptx)
+- Demo Video: [outputs/arc-paylink-demo.mp4](outputs/arc-paylink-demo.mp4)
 
 ## 为什么做这个项目
 
