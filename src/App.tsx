@@ -4,7 +4,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
-import { isAddress, type Address, type Hash } from "viem";
+import { isAddress, type Address, type Hash, type Hex } from "viem";
 import {
   arcTestnet,
   compactAddress,
@@ -12,6 +12,7 @@ import {
   sendPayment,
   waitForPayment,
 } from "./arc";
+import { fundEscrow, releaseEscrow } from "./escrow";
 
 type Status = "idle" | "connecting" | "signing" | "confirming" | "success" | "error";
 
@@ -19,6 +20,7 @@ const params = new URLSearchParams(window.location.search);
 const initialRecipient = params.get("to") ?? import.meta.env.VITE_DEFAULT_RECIPIENT ?? "";
 const initialAmount = params.get("amount") ?? "";
 const initialNote = params.get("note") ?? "";
+const initialMode = params.get("mode") === "protected" ? "protected" : "direct";
 
 function friendlyError(error: unknown) {
   const candidate = error as { code?: number; shortMessage?: string; message?: string };
@@ -30,11 +32,13 @@ export default function App() {
   const [recipient, setRecipient] = useState(initialRecipient);
   const [amount, setAmount] = useState(initialAmount);
   const [note, setNote] = useState(initialNote);
+  const [paymentMode, setPaymentMode] = useState<"direct" | "protected">(initialMode);
   const [account, setAccount] = useState<Address>();
   const [balance, setBalance] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
   const [hash, setHash] = useState<Hash>();
+  const [escrowId, setEscrowId] = useState<Hex>();
   const [copied, setCopied] = useState(false);
   const [qrCode, setQrCode] = useState({ url: "", data: "" });
 
@@ -46,8 +50,9 @@ export default function App() {
     url.searchParams.set("to", recipient);
     url.searchParams.set("amount", amount);
     if (note.trim()) url.searchParams.set("note", note.trim());
+    if (paymentMode === "protected") url.searchParams.set("mode", "protected");
     return url.toString();
-  }, [amount, note, recipient, validAmount, validRecipient]);
+  }, [amount, note, paymentMode, recipient, validAmount, validRecipient]);
 
   useEffect(() => {
     if (!requestUrl) return;
@@ -102,14 +107,38 @@ export default function App() {
         setAccount(connected.account);
         setBalance(Number(connected.balance).toFixed(4));
       }
-      const txHash = await sendPayment(recipient as Address, amount);
+      const protectedPayment = paymentMode === "protected"
+        ? await fundEscrow(recipient as Address, amount, note.trim())
+        : undefined;
+      const txHash = protectedPayment?.hash ?? await sendPayment(recipient as Address, amount);
+      setEscrowId(protectedPayment?.paymentId);
       setHash(txHash);
       setStatus("confirming");
       setMessage("交易已发送，正在等待 Arc Testnet 确认。");
       const receipt = await waitForPayment(txHash);
       if (receipt.status !== "success") throw new Error("交易执行失败。");
       setStatus("success");
-      setMessage("支付成功，链上记录已经确认。");
+      setMessage(paymentMode === "protected" ? "资金已进入托管，确认交付后再释放给收款方。" : "支付成功，链上记录已经确认。");
+    } catch (error) {
+      setStatus("error");
+      setMessage(friendlyError(error));
+    }
+  }
+
+  async function handleRelease() {
+    if (!escrowId) return;
+    setStatus("signing");
+    setMessage("请在钱包中确认释放托管资金。");
+    try {
+      const txHash = await releaseEscrow(escrowId);
+      setHash(txHash);
+      setStatus("confirming");
+      setMessage("释放交易已发送，正在等待 Arc Testnet 确认。");
+      const receipt = await waitForPayment(txHash);
+      if (receipt.status !== "success") throw new Error("释放交易执行失败。");
+      setStatus("success");
+      setMessage("托管资金已经释放给收款方。");
+      setEscrowId(undefined);
     } catch (error) {
       setStatus("error");
       setMessage(friendlyError(error));
@@ -161,6 +190,12 @@ export default function App() {
             <span>USDC</span>
           </div>
 
+          <label>付款方式</label>
+          <div className="mode-switch" role="group" aria-label="付款方式">
+            <button className={paymentMode === "direct" ? "active" : ""} onClick={() => setPaymentMode("direct")}>直接支付<small>即时到账</small></button>
+            <button className={paymentMode === "protected" ? "active" : ""} onClick={() => setPaymentMode("protected")}>受保护支付<small>确认交付后释放</small></button>
+          </div>
+
           <label>备注 <small>选填</small></label>
           <div className="field">
             <input maxLength={80} value={note} onChange={(event) => setNote(event.target.value)} placeholder="设计服务 / 订单 #1042" />
@@ -169,10 +204,11 @@ export default function App() {
           {account && <p className="balance">当前钱包余额：{balance} USDC</p>}
           <div className="actions">
             <button className="primary" onClick={handlePay} disabled={!validRecipient || !validAmount || isBusy}>
-              {status === "signing" ? "等待钱包确认…" : status === "confirming" ? "链上确认中…" : "支付这笔请求"}
+              {status === "signing" ? "等待钱包确认…" : status === "confirming" ? "链上确认中…" : paymentMode === "protected" ? "存入 USDC 托管" : "支付这笔请求"}
             </button>
             <button className="secondary" onClick={handleCopy} disabled={!requestUrl}>{copied ? "已复制" : "复制收款链接"}</button>
           </div>
+          {escrowId && status === "success" && <button className="release-button" onClick={handleRelease}>确认交付并释放资金</button>}
 
           {message && <div className={`status ${status}`} role="status">
             <span>{status === "success" ? "✓" : status === "error" ? "!" : "↗"}</span>
@@ -190,6 +226,7 @@ export default function App() {
             <div className="receipt-amount"><span>{validAmount ? amount : "0.00"}</span><small>USDC</small></div>
             <div className="receipt-line"><span>收款方</span><strong>{validRecipient ? compactAddress(recipient) : "等待地址"}</strong></div>
             <div className="receipt-line"><span>网络</span><strong>Arc Testnet</strong></div>
+            <div className="receipt-line"><span>结算</span><strong>{paymentMode === "protected" ? "24h 托管保护" : "即时到账"}</strong></div>
             <div className="receipt-line"><span>备注</span><strong>{note || "—"}</strong></div>
             <div className="qr-wrap">{qrCode.url === requestUrl ? <img src={qrCode.data} alt="收款链接二维码" /> : <div className="qr-placeholder">填写有效信息<br />生成二维码</div>}</div>
           </div>

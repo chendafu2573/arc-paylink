@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
+    "contract:compile": "node scripts/compile-contract.mjs",
+    "contract:deploy": "node scripts/deploy-escrow.mjs",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview --host 0.0.0.0"
@@ -12,10 +14,10 @@
   "dependencies": {
     "@vitejs/plugin-react": "latest",
     "qrcode": "latest",
-    "viem": "latest",
-    "vite": "latest",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "viem": "latest",
+    "vite": "latest"
   },
   "devDependencies": {
     "@eslint/js": "latest",
@@ -26,6 +28,7 @@
     "eslint-plugin-react-hooks": "latest",
     "eslint-plugin-react-refresh": "latest",
     "globals": "latest",
+    "solc": "^0.8.36",
     "typescript": "latest",
     "typescript-eslint": "latest"
   }

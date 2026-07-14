@@ -56,11 +56,16 @@ label small { color: var(--muted); }
 .field button { border: 0; background: transparent; white-space: nowrap; text-decoration: underline; font-size: 11px; }
 .amount-field input { font: 31px "DM Mono"; }
 .amount-field span { font: 12px "DM Mono"; }
+.mode-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mode-switch button { padding: 14px; text-align: left; color: var(--muted); background: transparent; border: 1px solid var(--line); font-weight: 600; }
+.mode-switch button.active { color: var(--ink); border-color: var(--ink); background: rgba(200,255,61,.22); }
+.mode-switch small { display: block; margin-top: 4px; color: var(--muted); font: 10px "DM Mono"; }
 .balance { color: var(--muted); font: 11px "DM Mono"; margin-top: 12px; }
 .actions { display: flex; gap: 10px; margin-top: 36px; }
 .actions button { flex: 1; min-height: 50px; border: 1px solid var(--ink); font-weight: 600; }
 .primary { color: var(--ink); background: var(--lime); }
 .secondary { color: var(--ink); background: transparent; }
+.release-button { width: 100%; min-height: 48px; margin-top: 10px; color: var(--paper); background: var(--ink); border: 0; font-weight: 600; }
 .status { margin-top: 18px; padding: 16px; border: 1px solid var(--line); display: flex; gap: 12px; font-size: 13px; }
 .status > span { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: var(--ink); color: var(--paper); }
 .status strong, .status a { display: block; }
