@@ -71,6 +71,14 @@ label small { color: var(--muted); }
 .escrow-card > div span { color: var(--muted); }
 .escrow-card > a { display: inline-block; margin: 8px 0 3px; color: var(--muted); font-size: 11px; }
 .refund-button { width: 100%; min-height: 48px; margin-top: 10px; color: var(--ink); background: transparent; border: 1px solid var(--ink); font-weight: 600; }
+.escrow-history { margin-top: 18px; border-top: 1px solid var(--line); }
+.history-heading { display: flex; justify-content: space-between; padding: 16px 0 8px; font: 11px "DM Mono"; text-transform: uppercase; }
+.history-heading span { color: var(--muted); }
+.escrow-history > button { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 12px; color: var(--ink); background: transparent; border: 1px solid transparent; border-bottom-color: var(--line); text-align: left; }
+.escrow-history > button.active { border-color: var(--ink); background: rgba(200,255,61,.12); }
+.escrow-history button span, .escrow-history button small { display: block; }
+.escrow-history button small { margin-top: 4px; color: var(--muted); font: 9px "DM Mono"; }
+.escrow-history button em { color: var(--muted); font: normal 10px "DM Mono"; }
 .status { margin-top: 18px; padding: 16px; border: 1px solid var(--line); display: flex; gap: 12px; font-size: 13px; }
 .status > span { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: var(--ink); color: var(--paper); }
 .status strong, .status a { display: block; }

@@ -17,6 +17,7 @@ import {
   escrowContract,
   loadEscrows,
   readEscrow,
+  replaceEscrows,
   refundEscrow,
   releaseEscrow,
   saveEscrow,
@@ -30,6 +31,7 @@ const initialRecipient = params.get("to") ?? import.meta.env.VITE_DEFAULT_RECIPI
 const initialAmount = params.get("amount") ?? "";
 const initialNote = params.get("note") ?? "";
 const initialMode = params.get("mode") === "protected" ? "protected" : "direct";
+const initialEscrows = loadEscrows();
 
 function friendlyError(error: unknown) {
   const candidate = error as { code?: number; shortMessage?: string; message?: string };
@@ -47,7 +49,8 @@ export default function App() {
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
   const [hash, setHash] = useState<Hash>();
-  const [escrow, setEscrow] = useState<EscrowRecord>();
+  const [escrow, setEscrow] = useState<EscrowRecord | undefined>(initialEscrows[0]);
+  const [escrows, setEscrows] = useState<EscrowRecord[]>(initialEscrows);
   const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
   const [copied, setCopied] = useState(false);
   const [qrCode, setQrCode] = useState({ url: "", data: "" });
@@ -75,14 +78,18 @@ export default function App() {
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
-    const latest = loadEscrows()[0];
-    if (latest) {
-      readEscrow(latest.paymentId).then((current) => {
-        if (!current) return;
-        setEscrow(current);
-        saveEscrow(current);
-      }).catch(() => setEscrow(latest));
-    }
+    const stored = loadEscrows();
+    Promise.all(stored.map(async (record) => {
+      try {
+        return await readEscrow(record.paymentId) ?? record;
+      } catch {
+        return record;
+      }
+    })).then((current) => {
+      setEscrows(current);
+      if (current[0]) setEscrow(current[0]);
+      replaceEscrows(current);
+    });
     return () => window.clearInterval(timer);
   }, []);
 
@@ -144,6 +151,7 @@ export default function App() {
           status: "funded",
         };
         setEscrow(record);
+        setEscrows((current) => [record, ...current.filter((item) => item.paymentId !== record.paymentId)].slice(0, 10));
         saveEscrow(record);
       }
       setHash(txHash);
@@ -174,6 +182,7 @@ export default function App() {
       setMessage("托管资金已经释放给收款方。");
       const updated = { ...escrow, status: "released" as const };
       setEscrow(updated);
+      setEscrows((current) => current.map((item) => item.paymentId === updated.paymentId ? updated : item));
       saveEscrow(updated);
     } catch (error) {
       setStatus("error");
@@ -194,6 +203,7 @@ export default function App() {
       if (receipt.status !== "success") throw new Error("退款交易执行失败。");
       const updated = { ...escrow, status: "refunded" as const };
       setEscrow(updated);
+      setEscrows((current) => current.map((item) => item.paymentId === updated.paymentId ? updated : item));
       saveEscrow(updated);
       setStatus("success");
       setMessage("托管资金已经原路退回付款钱包。");
@@ -281,6 +291,14 @@ export default function App() {
             <a href={`${arcTestnet.blockExplorers.default.url}/address/${escrowContract}`} target="_blank" rel="noreferrer">查看托管合约 ↗</a>
             {escrow.status === "funded" && refundRemaining > 0 && <button className="release-button" onClick={handleRelease} disabled={isBusy}>确认交付并释放资金</button>}
             {escrow.status === "funded" && refundRemaining === 0 && <button className="refund-button" onClick={handleRefund} disabled={isBusy}>取回到期托管资金</button>}
+          </div>}
+
+          {escrows.length > 0 && <div className="escrow-history">
+            <div className="history-heading"><strong>托管订单历史</strong><span>链上状态</span></div>
+            {escrows.slice(0, 5).map((item) => <button key={item.paymentId} className={item.paymentId === escrow?.paymentId ? "active" : ""} onClick={() => setEscrow(item)}>
+              <span><strong>{formatEther(BigInt(item.amount))} USDC</strong><small>{item.paymentId.slice(0, 10)}…{item.paymentId.slice(-6)}</small></span>
+              <em>{item.status === "funded" ? "托管中" : item.status === "released" ? "已放款" : "已退款"}</em>
+            </button>)}
           </div>}
 
           {message && <div className={`status ${status}`} role="status">

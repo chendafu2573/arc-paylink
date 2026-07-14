@@ -124,3 +124,7 @@ export function saveEscrow(record: EscrowRecord) {
   const records = loadEscrows().filter((item) => item.paymentId !== record.paymentId);
   localStorage.setItem(storageKey, JSON.stringify([record, ...records].slice(0, 10)));
 }
+
+export function replaceEscrows(records: EscrowRecord[]) {
+  localStorage.setItem(storageKey, JSON.stringify(records.slice(0, 10)));
+}
