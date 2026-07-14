@@ -16,6 +16,7 @@ import {
   fundEscrow,
   escrowContract,
   loadEscrows,
+  isPaymentId,
   readEscrow,
   replaceEscrows,
   refundEscrow,
@@ -31,6 +32,8 @@ const initialRecipient = params.get("to") ?? import.meta.env.VITE_DEFAULT_RECIPI
 const initialAmount = params.get("amount") ?? "";
 const initialNote = params.get("note") ?? "";
 const initialMode = params.get("mode") === "protected" ? "protected" : "direct";
+const escrowParam = params.get("escrow");
+const initialEscrowId = isPaymentId(escrowParam) ? escrowParam : undefined;
 const initialEscrows = loadEscrows();
 
 function friendlyError(error: unknown) {
@@ -53,6 +56,7 @@ export default function App() {
   const [escrows, setEscrows] = useState<EscrowRecord[]>(initialEscrows);
   const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
   const [copied, setCopied] = useState(false);
+  const [escrowLinkCopied, setEscrowLinkCopied] = useState(false);
   const [qrCode, setQrCode] = useState({ url: "", data: "" });
 
   const validRecipient = isAddress(recipient);
@@ -79,16 +83,21 @@ export default function App() {
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
     const stored = loadEscrows();
-    Promise.all(stored.map(async (record) => {
+    const recordsToLoad = initialEscrowId && !stored.some((record) => record.paymentId === initialEscrowId)
+      ? [{ paymentId: initialEscrowId }]
+      : stored;
+    Promise.all(recordsToLoad.map(async (record) => {
       try {
         return await readEscrow(record.paymentId) ?? record;
       } catch {
         return record;
       }
-    })).then((current) => {
-      setEscrows(current);
+    })).then((loaded) => {
+      const current = loaded.filter((record): record is EscrowRecord => "payer" in record);
+      const merged = [...current, ...stored.filter((record) => !current.some((item) => item.paymentId === record.paymentId))].slice(0, 10);
+      setEscrows(merged);
       if (current[0]) setEscrow(current[0]);
-      replaceEscrows(current);
+      replaceEscrows(merged);
     });
     return () => window.clearInterval(timer);
   }, []);
@@ -110,20 +119,33 @@ export default function App() {
 
   async function handleCopy() {
     if (!requestUrl) return;
-    if (navigator.clipboard) {
-      await navigator.clipboard.writeText(requestUrl);
-    } else {
-      const input = document.createElement("textarea");
-      input.value = requestUrl;
-      input.style.position = "fixed";
-      input.style.opacity = "0";
-      document.body.appendChild(input);
-      input.select();
-      document.execCommand("copy");
-      input.remove();
-    }
+    await copyText(requestUrl);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
+  }
+
+  async function handleEscrowLinkCopy() {
+    if (!escrow) return;
+    const url = new URL(window.location.origin);
+    url.searchParams.set("escrow", escrow.paymentId);
+    await copyText(url.toString());
+    setEscrowLinkCopied(true);
+    window.setTimeout(() => setEscrowLinkCopied(false), 1800);
+  }
+
+  async function copyText(value: string) {
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(value);
+      return;
+    }
+    const input = document.createElement("textarea");
+    input.value = value;
+    input.style.position = "fixed";
+    input.style.opacity = "0";
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand("copy");
+    input.remove();
   }
 
   async function handlePay() {
@@ -287,8 +309,13 @@ export default function App() {
           {escrow && <div className="escrow-card">
             <div><span>最近托管订单</span><strong>{escrow.status === "funded" ? "托管中" : escrow.status === "released" ? "已放款" : "已退款"}</strong></div>
             <div><span>金额</span><strong>{formatEther(BigInt(escrow.amount))} USDC</strong></div>
+            <div><span>付款方</span><strong>{compactAddress(escrow.payer)}</strong></div>
+            <div><span>收款方</span><strong>{compactAddress(escrow.payee)}</strong></div>
             <div><span>退款时间</span><strong>{escrow.status === "funded" ? refundRemaining > 0 ? refundCountdown : "现在可退款" : "—"}</strong></div>
-            <a href={`${arcTestnet.blockExplorers.default.url}/address/${escrowContract}`} target="_blank" rel="noreferrer">查看托管合约 ↗</a>
+            <div className="escrow-links">
+              <a href={`${arcTestnet.blockExplorers.default.url}/address/${escrowContract}`} target="_blank" rel="noreferrer">查看托管合约 ↗</a>
+              <button onClick={handleEscrowLinkCopy}>{escrowLinkCopied ? "状态链接已复制" : "复制状态链接"}</button>
+            </div>
             {escrow.status === "funded" && refundRemaining > 0 && <button className="release-button" onClick={handleRelease} disabled={isBusy}>确认交付并释放资金</button>}
             {escrow.status === "funded" && refundRemaining === 0 && <button className="refund-button" onClick={handleRefund} disabled={isBusy}>取回到期托管资金</button>}
           </div>}

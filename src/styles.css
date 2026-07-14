@@ -70,6 +70,9 @@ label small { color: var(--muted); }
 .escrow-card > div { display: flex; justify-content: space-between; gap: 16px; padding: 7px 0; font-size: 12px; }
 .escrow-card > div span { color: var(--muted); }
 .escrow-card > a { display: inline-block; margin: 8px 0 3px; color: var(--muted); font-size: 11px; }
+.escrow-links { align-items: center; margin-top: 4px; border-top: 1px solid var(--line); }
+.escrow-links a { color: var(--muted); font-size: 11px; }
+.escrow-links button { padding: 5px 8px; color: var(--ink); background: transparent; border: 1px solid var(--line); font-size: 10px; }
 .refund-button { width: 100%; min-height: 48px; margin-top: 10px; color: var(--ink); background: transparent; border: 1px solid var(--ink); font-weight: 600; }
 .escrow-history { margin-top: 18px; border-top: 1px solid var(--line); }
 .history-heading { display: flex; justify-content: space-between; padding: 16px 0 8px; font: 11px "DM Mono"; text-transform: uppercase; }

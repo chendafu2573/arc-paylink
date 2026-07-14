@@ -31,6 +31,10 @@ export type EscrowRecord = {
   status: EscrowStatus;
 };
 
+export function isPaymentId(value: string | null): value is Hex {
+  return typeof value === "string" && /^0x[0-9a-fA-F]{64}$/.test(value);
+}
+
 function walletClient() {
   if (!window.ethereum) throw new Error("钱包未连接。");
   return createWalletClient({

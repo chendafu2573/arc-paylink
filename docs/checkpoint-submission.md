@@ -19,6 +19,7 @@ A wallet address does not contain payment context or delivery conditions. Existi
 - Direct native USDC payment links and QR codes
 - Delivery-protected escrow with release and timeout refund
 - Onchain order recovery after page refresh
+- Shareable public order-status links backed by direct contract reads
 - Public contract, source repository, and ArcScan evidence
 - Automated verification of deployed bytecode and released test order
 
