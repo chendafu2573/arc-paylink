@@ -35,6 +35,7 @@ const initialMode = params.get("mode") === "protected" ? "protected" : "direct";
 const escrowParam = params.get("escrow");
 const initialEscrowId = isPaymentId(escrowParam) ? escrowParam : undefined;
 const initialEscrows = loadEscrows();
+const proofPaymentId = "0x51a8242e1a04a1557b18a85d3e2da62d9b2eff92e1657b389ab331392b5c5c6f";
 
 function friendlyError(error: unknown, language: "zh" | "en") {
   const candidate = error as { code?: number; shortMessage?: string; message?: string };
@@ -98,7 +99,14 @@ export default function App() {
       const current = loaded.filter((record): record is EscrowRecord => "payer" in record);
       const merged = [...current, ...stored.filter((record) => !current.some((item) => item.paymentId === record.paymentId))].slice(0, 10);
       setEscrows(merged);
-      if (current[0]) setEscrow(current[0]);
+      if (current[0]) {
+        setEscrow(current[0]);
+        if (initialEscrowId) {
+          setRecipient(current[0].payee);
+          setAmount(formatEther(BigInt(current[0].amount)));
+          setPaymentMode("protected");
+        }
+      }
       replaceEscrows(merged);
     });
     return () => window.clearInterval(timer);
@@ -255,6 +263,7 @@ export default function App() {
           <span>Arc Paylink</span>
         </a>
         <div className="nav-actions">
+          <a className="proof-link" href={`/?escrow=${proofPaymentId}`}>{tr("链上演示", "Live proof")}</a>
           <button className="language-button" onClick={() => setLanguage(language === "zh" ? "en" : "zh")}>{language === "zh" ? "EN" : "中文"}</button>
           <span className="network"><i /> Arc Testnet</span>
           <button className="wallet-button" onClick={handleConnect} disabled={isBusy}>
@@ -271,6 +280,12 @@ export default function App() {
           <span>{tr("USDC 原生 Gas", "USDC native gas")}</span><span>{tr("钱包内签名", "Wallet signed")}</span><span>{tr("ArcScan 可验证", "ArcScan verified")}</span>
         </div>
       </section>
+
+      {initialEscrowId && <section className="proof-banner">
+        <strong>{tr("真实链上演示订单", "Live onchain proof")}</strong>
+        <span>{tr("此页面直接读取 Arc Testnet 合约，不依赖服务器数据库。", "This page reads Arc Testnet contract state directly—no server database required.")}</span>
+        <a href={`${arcTestnet.blockExplorers.default.url}/tx/0x05f37466ad220a1639cc82f427c9b4b5cc43041dc6751ea6fc1976be8b8c97c7`} target="_blank" rel="noreferrer">{tr("查看放款交易 ↗", "View release transaction ↗")}</a>
+      </section>}
 
       <section className="workspace">
         <div className="form-panel">

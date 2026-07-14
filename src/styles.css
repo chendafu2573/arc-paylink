@@ -32,6 +32,7 @@ nav { height: 92px; display: flex; align-items: center; justify-content: space-b
 .network i { width: 7px; height: 7px; border-radius: 50%; background: #54c66a; box-shadow: 0 0 0 4px rgba(84,198,106,.15); }
 .wallet-button { color: var(--paper); background: var(--ink); border: 0; padding: 11px 17px; border-radius: 4px; font: 12px "DM Mono"; }
 .language-button { padding: 8px 10px; color: var(--ink); background: transparent; border: 1px solid var(--line); font: 10px "DM Mono"; }
+.proof-link { font: 10px "DM Mono"; text-transform: uppercase; text-decoration: none; border-bottom: 1px solid var(--ink); }
 
 .hero { padding: 88px 0 76px; max-width: 920px; }
 .eyebrow { font: 12px "DM Mono"; letter-spacing: .16em; margin: 0 0 26px; }
@@ -40,6 +41,9 @@ h1 em { color: transparent; -webkit-text-stroke: 1.5px var(--ink); font-style: n
 .intro { font-size: 18px; line-height: 1.7; color: var(--muted); max-width: 620px; margin: 34px 0 26px; }
 .proof-row { display: flex; flex-wrap: wrap; gap: 24px; font: 11px "DM Mono"; text-transform: uppercase; }
 .proof-row span::before { content: "✓"; margin-right: 8px; color: #376e42; }
+.proof-banner { display: flex; align-items: center; gap: 24px; margin-bottom: 22px; padding: 16px 20px; color: var(--ink); background: var(--lime); border: 1px solid var(--ink); font-size: 12px; }
+.proof-banner span { flex: 1; }
+.proof-banner a { font: 10px "DM Mono"; white-space: nowrap; }
 
 .workspace { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(330px, .65fr); border: 1px solid var(--ink); margin-bottom: 54px; }
 .form-panel, .preview-panel { padding: clamp(28px, 4vw, 52px); }
@@ -114,8 +118,10 @@ footer span { margin-right: auto; }
   main { padding: 0 20px; }
   nav { height: 76px; }
   .network { display: none; }
+  .proof-link { display: none; }
   .hero { padding: 64px 0 54px; }
   .workspace { grid-template-columns: 1fr; }
+  .proof-banner { align-items: flex-start; flex-direction: column; gap: 8px; }
   .actions { flex-direction: column; }
   footer { flex-wrap: wrap; padding: 25px 0; gap: 14px; }
   footer span { width: 100%; }

@@ -8,6 +8,7 @@
 Arc Paylink 是一个运行在 Arc Testnet 上的可编程 USDC 发票工具。收款人填写地址、金额和备注即可生成可分享链接；付款人可直接支付，也可把资金存入托管，确认交付后再放款。
 
 - Live App: <https://13-212-95-171.sslip.io>
+- Live Proof: <https://13-212-95-171.sslip.io/?escrow=0x51a8242e1a04a1557b18a85d3e2da62d9b2eff92e1657b389ab331392b5c5c6f>
 - Builder Submission: [docs/builder-submission.md](docs/builder-submission.md)
 - Checkpoint Draft: [docs/checkpoint-submission.md](docs/checkpoint-submission.md)
 - Demo Script: [docs/demo-script.md](docs/demo-script.md)
