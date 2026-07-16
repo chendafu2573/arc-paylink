@@ -1,0 +1,91 @@
+{
+  "schema": "arc-paylink-agent-receipt/v1",
+  "network": {
+    "name": "Arc Testnet",
+    "chainId": 5042002,
+    "caip2": "eip155:5042002"
+  },
+  "agent": {
+    "standard": "ERC-8004",
+    "id": "851241",
+    "owner": "0x4f9011fCba9B69Bfa839604a70434674Fbf78827",
+    "registry": "0x8004A818BFB912233c491871b3d84c89A494BD9e",
+    "registrationTransaction": "0x29dbdce7da8b59b5f2917495b4b4582013079de179cd74b50f487f9590efa4bc"
+  },
+  "policyExecution": {
+    "vault": "0x7af6b4261bf83823a83fa9b6614676db68a88fba",
+    "paymentId": "0x6a2c97a2e9a7edb2e6a556ce3167744a7f81294fc5fc72eae4205604c66fb89f",
+    "amount": "0.01 USDC",
+    "transaction": "0x530b182a6e9a129873e62519629a61d02236fe52c0b22ca9fa07d38cb35fa7ad",
+    "blockNumber": "52144336",
+    "checks": {
+      "identityMatchesPolicy": true,
+      "approvedStatus": true,
+      "validTimestamps": true,
+      "freshSignal": true,
+      "vaultActive": true,
+      "recipientAllowed": true,
+      "underPaymentCap": true,
+      "underTotalBudget": true,
+      "vaultFunded": true,
+      "replaySafe": true
+    }
+  },
+  "jobSettlement": {
+    "standard": "ERC-8183",
+    "contract": "0x0747EEf0706327138c69792bF28Cd525089e4583",
+    "jobId": "158446",
+    "client": "0x4f9011fCba9B69Bfa839604a70434674Fbf78827",
+    "provider": "0x890F38CC2CEeC19eE12E6CF5A777B36359e1f349",
+    "evaluator": "0x4f9011fCba9B69Bfa839604a70434674Fbf78827",
+    "budget": "0.1 USDC",
+    "status": "Completed",
+    "deliverableHash": "0x0c8f5cd441dc8132105c8c8f1a78952b38355f45cbe1b7972ca78644a3458cd4",
+    "completionTransaction": "0x501e31834f57ef7f1631015c904b46db94f3b3a599f3e3849c55011e37f818b8"
+  },
+  "machinePayment": {
+    "product": "Circle Gateway Nanopayments",
+    "protocol": "x402",
+    "payer": "0x4f9011fCba9B69Bfa839604a70434674Fbf78827",
+    "payee": "0x890F38CC2CEeC19eE12E6CF5A777B36359e1f349",
+    "amount": "0.01 USDC",
+    "resource": "/agent-settlement-signal",
+    "transferId": "07c2724c-ba84-42c6-9624-c65146d24723",
+    "transferStatus": "received",
+    "httpStatus": 200,
+    "verifiedSignal": "erc8183-job-completed"
+  },
+  "evidence": {
+    "identity": {
+      "path": "/agent-identity.json",
+      "digest": "sha256:930fcc7d8f17d2954b7e842e9fcb120b4e3d65f3bf7fb3a4ee25b1800124f9fc"
+    },
+    "policyExecution": {
+      "path": "/agent-runs/latest-execution.json",
+      "digest": "sha256:b458ea3e79ad6a70ab63b885b807b82b405d4cf8576c258107364d93f1d3d0f3"
+    },
+    "jobSettlement": {
+      "path": "/erc8183-job.json",
+      "digest": "sha256:4f80f417917342b21b251334c1e0a92dd88259f9f8ae205a010e9a0c52a42f2a"
+    },
+    "machinePayment": {
+      "path": "/gateway-proof.json",
+      "digest": "sha256:df6cb6c6f6685f34cb48ebce5ce811d0b1fd45d3f613c6cc68172a614bc09349"
+    }
+  },
+  "verification": {
+    "status": "verified",
+    "checks": {
+      "identityMatchesExecution": true,
+      "executionMatchesJob": true,
+      "policyPaymentExecuted": true,
+      "jobCompleted": true,
+      "gatewayMatchesJob": true,
+      "gatewayBuyerMatchesClient": true,
+      "gatewayDeliverableMatchesJob": true,
+      "gatewayPaymentReceived": true
+    }
+  },
+  "receiptId": "sha256:8cbb1bfea009da74ba27ddf40060f305a5233bc91341b42277eff3513a1fad6a",
+  "issuedAt": "2026-07-16T18:50:56.744Z"
+}

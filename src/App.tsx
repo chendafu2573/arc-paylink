@@ -35,6 +35,7 @@ import agentIdentity from "./generated/agent-identity.json";
 import agentExecution from "../public/agent-runs/latest-execution.json";
 import erc8183Job from "./generated/erc8183-job.json";
 import gatewayProof from "./generated/gateway-proof.json";
+import agentReceipt from "./generated/agent-receipt.json";
 
 type Status = "idle" | "connecting" | "signing" | "confirming" | "success" | "error";
 
@@ -498,6 +499,7 @@ export default function App() {
               <div><dt>{tr("任务结算", "Job settlement")}</dt><dd>{erc8183Job.status} · {erc8183Job.budget}</dd></div>
               <div><dt>x402 Nanopayment</dt><dd>{gatewayProof.amount} USDC · HTTP {gatewayProof.httpStatus}</dd></div>
               <div><dt>Gateway</dt><dd>{gatewayProof.transferStatus}</dd></div>
+              <div><dt>Agent Receipt</dt><dd>{agentReceipt.verification.status} · {agentReceipt.receiptId.slice(7, 15)}…</dd></div>
             </dl>
             <div className="policy-links">
               <a href={`${arcTestnet.blockExplorers.default.url}/address/${agentIdentity.registry}`} target="_blank" rel="noreferrer">{tr("验证 Agent 身份 ↗", "Verify agent identity ↗")}</a>
@@ -505,6 +507,7 @@ export default function App() {
               <a href={`${arcTestnet.blockExplorers.default.url}/tx/${erc8183Job.transactions.complete}`} target="_blank" rel="noreferrer">{tr("验证 ERC-8183 结算 ↗", "Verify ERC-8183 settlement ↗")}</a>
               <a href={`${arcTestnet.blockExplorers.default.url}/tx/${gatewayProof.depositTxHash}`} target="_blank" rel="noreferrer">{tr("验证 Gateway 存款 ↗", "Verify Gateway deposit ↗")}</a>
               <a href="/gateway-proof.json" target="_blank" rel="noreferrer">{tr("查看 x402 付款证据 ↗", "View x402 payment proof ↗")}</a>
+              <a href="/agent-receipt.json" target="_blank" rel="noreferrer">{tr("查看统一 Agent Receipt ↗", "View unified Agent Receipt ↗")}</a>
               <a href={`${arcTestnet.blockExplorers.default.url}/address/${agentVaultAddress}`} target="_blank" rel="noreferrer">{tr("验证策略合约 ↗", "Verify policy contract ↗")}</a>
             </div>
             <div className="agent-execute"><input type="number" min="0" value={agentPaymentAmount} onChange={(event) => setAgentPaymentAmount(event.target.value)} /><button onClick={handleAgentPayment} disabled={isBusy || !isAddress(agentRecipient) || Number(agentPaymentAmount) <= 0}>{tr("执行受限付款", "Execute bounded payment")}</button></div>

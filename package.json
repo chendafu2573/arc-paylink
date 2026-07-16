@@ -13,6 +13,8 @@
     "agent:execute": "node scripts/run-payment-agent.mjs --execute",
     "agent:erc8183": "node scripts/run-erc8183-job.mjs",
     "agent:gateway": "node scripts/run-gateway-agent.mjs",
+    "agent:receipt": "node scripts/generate-agent-receipt.mjs",
+    "agent:receipt:check": "node scripts/generate-agent-receipt.mjs --check",
     "contract:deploy": "node scripts/deploy-escrow.mjs",
     "contract:verify": "node scripts/verify-escrow.mjs",
     "build": "tsc -b && vite build",
