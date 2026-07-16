@@ -36,6 +36,8 @@ const escrowParam = params.get("escrow");
 const initialEscrowId = isPaymentId(escrowParam) ? escrowParam : undefined;
 const initialEscrows = loadEscrows();
 const proofPaymentId = "0x51a8242e1a04a1557b18a85d3e2da62d9b2eff92e1657b389ab331392b5c5c6f";
+const liveAppUrl = "https://13-212-95-171.sslip.io";
+const httpFallbackUrl = "http://13.212.95.171";
 
 function friendlyError(error: unknown, language: "zh" | "en") {
   const candidate = error as { code?: number; shortMessage?: string; message?: string };
@@ -61,6 +63,7 @@ export default function App() {
   const [escrowLinkCopied, setEscrowLinkCopied] = useState(false);
   const [qrCode, setQrCode] = useState({ url: "", data: "" });
   const tr = (zh: string, en: string) => language === "zh" ? zh : en;
+  const runningOnFallback = window.location.protocol === "http:";
 
   const validRecipient = isAddress(recipient);
   const validAmount = Number(amount) > 0 && Number.isFinite(Number(amount));
@@ -281,6 +284,17 @@ export default function App() {
         </div>
       </section>
 
+      <section className={`access-banner ${runningOnFallback ? "warning" : ""}`}>
+        <strong>{runningOnFallback ? tr("当前为 HTTP 兼容入口", "You are using the HTTP fallback") : tr("兼容入口已就绪", "Fallback access is ready")}</strong>
+        <span>{runningOnFallback
+          ? tr("仅用于公开测试网演示。不要输入助记词、私钥或任何真实资金信息。", "Use this only for public testnet demos. Never enter seed phrases, private keys, or real-fund details.")
+          : tr("若本地代理或 Fake-IP 环境拦截 sslip.io，可改用 HTTP fallback 查看公开测试网页面。", "If a local proxy or Fake-IP setup blocks sslip.io, switch to the HTTP fallback for the public testnet demo.")}</span>
+        <div className="access-links">
+          {!runningOnFallback && <a href={liveAppUrl} target="_blank" rel="noreferrer">{tr("HTTPS 主站 ↗", "HTTPS app ↗")}</a>}
+          <a href={httpFallbackUrl} target="_blank" rel="noreferrer">{tr("HTTP fallback ↗", "HTTP fallback ↗")}</a>
+        </div>
+      </section>
+
       {initialEscrowId && <section className="proof-banner">
         <strong>{tr("真实链上演示订单", "Live onchain proof")}</strong>
         <span>{tr("此页面直接读取 Arc Testnet 合约，不依赖服务器数据库。", "This page reads Arc Testnet contract state directly—no server database required.")}</span>
@@ -364,7 +378,7 @@ export default function App() {
             <div className="receipt-line"><span>{tr("网络", "Network")}</span><strong>Arc Testnet</strong></div>
             <div className="receipt-line"><span>{tr("结算", "Settlement")}</span><strong>{paymentMode === "protected" ? tr("24h 托管保护", "24h escrow protection") : tr("即时到账", "Immediate")}</strong></div>
             <div className="receipt-line"><span>{tr("备注", "Note")}</span><strong>{note || "—"}</strong></div>
-            <div className="qr-wrap">{qrCode.url === requestUrl ? <img src={qrCode.data} alt={tr("收款链接二维码", "Invoice QR code")} /> : <div className="qr-placeholder">{tr("填写有效信息", "Enter valid details")}<br />{tr("生成二维码", "to create a QR code")}</div>}</div>
+            <div className="qr-wrap">{requestUrl && qrCode.url === requestUrl ? <img src={qrCode.data} alt={tr("收款链接二维码", "Invoice QR code")} /> : <div className="qr-placeholder">{tr("填写有效信息", "Enter valid details")}<br />{tr("生成二维码", "to create a QR code")}</div>}</div>
           </div>
           <p className="disclaimer">{tr("仅限测试网。测试 USDC 没有现实货币价值。", "Testnet only. Test USDC has no real-world value.")}</p>
         </aside>

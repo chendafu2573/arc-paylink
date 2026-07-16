@@ -22,10 +22,12 @@ A wallet address does not contain payment context or delivery conditions. Existi
 - Shareable public order-status links backed by direct contract reads
 - Public contract, source repository, and ArcScan evidence
 - Automated verification of deployed bytecode and released test order
+- Three-minute product demo and pitch deck ready for review
 
 ## Links
 
 - Live: https://13-212-95-171.sslip.io
+- HTTP fallback: http://13.212.95.171
 - Live proof: https://13-212-95-171.sslip.io/?escrow=0x51a8242e1a04a1557b18a85d3e2da62d9b2eff92e1657b389ab331392b5c5c6f
 - Source: https://github.com/chendafu2573/arc-paylink
 - Demo video: https://github.com/chendafu2573/arc-paylink/blob/main/outputs/arc-paylink-demo.mp4
@@ -35,4 +37,4 @@ A wallet address does not contain payment context or delivery conditions. Existi
 
 ## Next milestone
 
-Complete the recorded demo, add invoice history and split settlement, gather user feedback from the Arc community, and polish the final submission.
+Add explicit agent-payment controls and Gateway-backed settlement status, gather user feedback from the Arc community, and polish the final submission.
