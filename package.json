@@ -16,6 +16,7 @@
     "agent:receipt": "node scripts/generate-agent-receipt.mjs",
     "agent:receipt:check": "node scripts/generate-agent-receipt.mjs --check",
     "agent:receipt:verify": "node scripts/verify-agent-receipt.mjs",
+    "agent:receipt:anchor": "node scripts/anchor-agent-receipt.mjs",
     "contract:deploy": "node scripts/deploy-escrow.mjs",
     "contract:verify": "node scripts/verify-escrow.mjs",
     "build": "tsc -b && vite build",

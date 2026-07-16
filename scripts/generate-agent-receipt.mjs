@@ -6,7 +6,7 @@ import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { recoverMessageAddress } from "viem";
+import { recoverMessageAddress, stringToHex } from "viem";
 import { mnemonicToAccount } from "viem/accounts";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -106,6 +106,19 @@ const receiptCore = {
 
 const receiptId = digest(receiptCore);
 const attestationMessage = `Arc Paylink Agent Receipt\n${receiptId}\nNetwork: eip155:5042002`;
+let anchor;
+try {
+  anchor = await readJson("public/agent-receipt-anchor.json");
+  const expectedMessage = `${receiptCore.schema}|${receiptId}`;
+  if (
+    anchor.receiptId !== receiptId ||
+    anchor.message !== expectedMessage ||
+    anchor.data !== stringToHex(expectedMessage) ||
+    anchor.verified !== true
+  ) throw new Error("Receipt anchor does not match the current Receipt ID");
+} catch (error) {
+  if (error?.code !== "ENOENT") throw error;
+}
 const walletBackup = JSON.parse(await readFile(walletPath, "utf8"));
 const account = mnemonicToAccount(walletBackup.mnemonic, { path: walletBackup.derivationPath });
 if (!sameAddress(account.address, identity.owner) || !sameAddress(walletBackup.address, identity.owner)) {
@@ -126,6 +139,7 @@ const receipt = {
     signature,
     verified: true,
   },
+  ...(anchor ? { anchor } : {}),
 };
 
 const serialized = `${JSON.stringify(receipt, null, 2)}\n`;

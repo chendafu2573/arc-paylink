@@ -501,6 +501,7 @@ export default function App() {
               <div><dt>Gateway</dt><dd>{gatewayProof.transferStatus}</dd></div>
               <div><dt>Agent Receipt</dt><dd>{agentReceipt.verification.status} · {agentReceipt.receiptId.slice(7, 15)}…</dd></div>
               <div><dt>{tr("Receipt 签名", "Receipt signature")}</dt><dd>{agentReceipt.attestation.verified ? `EIP-191 · ${compactAddress(agentReceipt.attestation.signer as Address)}` : tr("无效", "Invalid")}</dd></div>
+              <div><dt>{tr("链上锚点", "Onchain anchor")}</dt><dd>{agentReceipt.anchor.verified ? `Arc · #${agentReceipt.anchor.blockNumber}` : tr("未验证", "Unverified")}</dd></div>
             </dl>
             <div className="policy-links">
               <a href={`${arcTestnet.blockExplorers.default.url}/address/${agentIdentity.registry}`} target="_blank" rel="noreferrer">{tr("验证 Agent 身份 ↗", "Verify agent identity ↗")}</a>
@@ -509,6 +510,7 @@ export default function App() {
               <a href={`${arcTestnet.blockExplorers.default.url}/tx/${gatewayProof.depositTxHash}`} target="_blank" rel="noreferrer">{tr("验证 Gateway 存款 ↗", "Verify Gateway deposit ↗")}</a>
               <a href="/gateway-proof.json" target="_blank" rel="noreferrer">{tr("查看 x402 付款证据 ↗", "View x402 payment proof ↗")}</a>
               <a href="/agent-receipt.json" target="_blank" rel="noreferrer">{tr("查看统一 Agent Receipt ↗", "View unified Agent Receipt ↗")}</a>
+              <a href={agentReceipt.anchor.explorerUrl} target="_blank" rel="noreferrer">{tr("验证 Receipt 链上锚点 ↗", "Verify Receipt onchain anchor ↗")}</a>
               <a href={`${arcTestnet.blockExplorers.default.url}/address/${agentVaultAddress}`} target="_blank" rel="noreferrer">{tr("验证策略合约 ↗", "Verify policy contract ↗")}</a>
             </div>
             <div className="agent-execute"><input type="number" min="0" value={agentPaymentAmount} onChange={(event) => setAgentPaymentAmount(event.target.value)} /><button onClick={handleAgentPayment} disabled={isBusy || !isAddress(agentRecipient) || Number(agentPaymentAmount) <= 0}>{tr("执行受限付款", "Execute bounded payment")}</button></div>

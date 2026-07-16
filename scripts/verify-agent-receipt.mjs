@@ -6,7 +6,8 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { recoverMessageAddress } from "viem";
+import { createPublicClient, http, recoverMessageAddress, stringToHex } from "viem";
+import { arcTestnet } from "viem/chains";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const receiptPath = process.argv[2] ?? path.join(root, "public/agent-receipt.json");
@@ -26,7 +27,7 @@ function sameAddress(left, right) {
   return left.toLowerCase() === right.toLowerCase();
 }
 
-const { receiptId, issuedAt: _issuedAt, attestation, ...receiptCore } = receipt;
+const { receiptId, issuedAt: _issuedAt, attestation, anchor, ...receiptCore } = receipt;
 const computedReceiptId = digest(receiptCore);
 if (computedReceiptId !== receiptId) throw new Error(`Receipt digest mismatch: ${computedReceiptId}`);
 if (attestation.scheme !== "EIP-191") throw new Error(`Unsupported attestation scheme: ${attestation.scheme}`);
@@ -41,6 +42,28 @@ if (!sameAddress(recoveredSigner, receipt.agent.owner) || !sameAddress(recovered
 }
 if (!Object.values(receipt.verification.checks).every(Boolean)) throw new Error("Receipt contains a failed evidence check");
 
+let anchorVerified = false;
+if (anchor) {
+  const expectedAnchorMessage = `${receipt.schema}|${receiptId}`;
+  if (
+    anchor.receiptId !== receiptId ||
+    anchor.message !== expectedAnchorMessage ||
+    anchor.data !== stringToHex(expectedAnchorMessage) ||
+    anchor.network !== "eip155:5042002"
+  ) throw new Error("Receipt anchor does not bind the current Receipt ID");
+  const publicClient = createPublicClient({ chain: arcTestnet, transport: http("https://rpc.testnet.arc.network") });
+  const [transaction, transactionReceipt] = await Promise.all([
+    publicClient.getTransaction({ hash: anchor.transactionHash }),
+    publicClient.getTransactionReceipt({ hash: anchor.transactionHash }),
+  ]);
+  anchorVerified = transactionReceipt.status === "success" &&
+    transaction.input === anchor.data &&
+    transaction.value === 0n &&
+    sameAddress(transaction.from, receipt.agent.owner) &&
+    Boolean(transaction.to && sameAddress(transaction.to, receipt.agent.owner));
+  if (!anchorVerified) throw new Error("Arc Testnet anchor verification failed");
+}
+
 process.stdout.write(`${JSON.stringify({
   verified: true,
   receiptId,
@@ -48,4 +71,6 @@ process.stdout.write(`${JSON.stringify({
   agentId: receipt.agent.id,
   jobId: receipt.jobSettlement.jobId,
   transferId: receipt.machinePayment.transferId,
+  anchorVerified,
+  anchorTransaction: anchor?.transactionHash,
 }, null, 2)}\n`);

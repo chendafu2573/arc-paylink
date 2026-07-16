@@ -30,7 +30,7 @@ A wallet address does not contain payment context or delivery conditions. Existi
 - Autonomous runner checks task approval, signal freshness, vault status, recipient allowlist, budget, balance, payment cap, and replay protection before settlement
 - Official ERC-8183 Job #158446 completed the full Open → Funded → Submitted → Completed lifecycle with a separate provider wallet and 0.1 USDC escrow settlement
 - Circle Gateway deposited 0.5 test USDC, then Agent #851241 paid 0.01 USDC gaslessly through x402 to retrieve the verified ERC-8183 settlement signal
-- Unified Agent Receipt cross-validates identity, policy execution, ERC-8183 settlement, and the x402 transfer under one stable SHA-256 receipt ID, then binds it to the ERC-8004 owner with a publicly recoverable EIP-191 signature
+- Unified Agent Receipt cross-validates identity, policy execution, ERC-8183 settlement, and the x402 transfer under one stable SHA-256 receipt ID, binds it to the ERC-8004 owner with a publicly recoverable EIP-191 signature, and anchors the ID in Arc Testnet transaction calldata
 
 ## Links
 
@@ -51,6 +51,7 @@ A wallet address does not contain payment context or delivery conditions. Existi
 - Gateway deposit: https://testnet.arcscan.app/tx/0x6d90fc8652ebd4182c206507895c209359422ed1914ec615cb00ab71deb3a019
 - x402 proof: http://13.212.95.171/gateway-proof.json
 - Unified Agent Receipt: http://13.212.95.171/agent-receipt.json
+- Receipt anchor: https://testnet.arcscan.app/tx/0x4aab13cd9e2324d3b5bdb2b50fe80553396d1a98a80759c2345d97dc4d94557b
 - Fund transaction: https://testnet.arcscan.app/tx/0x8eaa28e4ac6431ff73d21b1c92338b3a1dbe3533cd5d4876c658dcd917779c74
 - Release transaction: https://testnet.arcscan.app/tx/0x05f37466ad220a1639cc82f427c9b4b5cc43041dc6751ea6fc1976be8b8c97c7
 
