@@ -12,6 +12,7 @@
     "agent:dry-run": "node scripts/run-payment-agent.mjs",
     "agent:execute": "node scripts/run-payment-agent.mjs --execute",
     "agent:erc8183": "node scripts/run-erc8183-job.mjs",
+    "agent:gateway": "node scripts/run-gateway-agent.mjs",
     "contract:deploy": "node scripts/deploy-escrow.mjs",
     "contract:verify": "node scripts/verify-escrow.mjs",
     "build": "tsc -b && vite build",
@@ -19,7 +20,11 @@
     "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {
+    "@circle-fin/x402-batching": "^3.2.0",
     "@vitejs/plugin-react": "latest",
+    "@x402/core": "^2.18.0",
+    "@x402/evm": "^2.18.0",
+    "express": "^5.2.1",
     "qrcode": "latest",
     "react": "latest",
     "react-dom": "latest",

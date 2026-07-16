@@ -1,0 +1,8 @@
+{
+  "chain": "arcTestnet",
+  "network": "eip155:5042002",
+  "depositAmount": "0.5",
+  "minimumAvailable": "0.5",
+  "paymentPrice": "$0.01",
+  "resourcePath": "/agent-settlement-signal"
+}

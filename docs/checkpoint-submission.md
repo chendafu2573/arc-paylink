@@ -29,6 +29,7 @@ A wallet address does not contain payment context or delivery conditions. Existi
 - ERC-8004 Settlement Agent registered on Arc Testnet as Agent ID 851241
 - Autonomous runner checks task approval, signal freshness, vault status, recipient allowlist, budget, balance, payment cap, and replay protection before settlement
 - Official ERC-8183 Job #158446 completed the full Open → Funded → Submitted → Completed lifecycle with a separate provider wallet and 0.1 USDC escrow settlement
+- Circle Gateway deposited 0.5 test USDC, then Agent #851241 paid 0.01 USDC gaslessly through x402 to retrieve the verified ERC-8183 settlement signal
 
 ## Links
 
@@ -45,6 +46,8 @@ A wallet address does not contain payment context or delivery conditions. Existi
 - ERC-8183 job creation: https://testnet.arcscan.app/tx/0x04559d66b0a81fdf1719d3ea516ed21ef20fa9390b74768359c4b71dd745461c
 - ERC-8183 deliverable: https://testnet.arcscan.app/tx/0x2dc40f13544ce07c0fd91c30acfcc6681c59c7d6850c3dc98118fd554ebb8a67
 - ERC-8183 settlement: https://testnet.arcscan.app/tx/0x501e31834f57ef7f1631015c904b46db94f3b3a599f3e3849c55011e37f818b8
+- Gateway deposit: https://testnet.arcscan.app/tx/0x6d90fc8652ebd4182c206507895c209359422ed1914ec615cb00ab71deb3a019
+- x402 proof: http://13.212.95.171/gateway-proof.json
 - Fund transaction: https://testnet.arcscan.app/tx/0x8eaa28e4ac6431ff73d21b1c92338b3a1dbe3533cd5d4876c658dcd917779c74
 - Release transaction: https://testnet.arcscan.app/tx/0x05f37466ad220a1639cc82f427c9b4b5cc43041dc6751ea6fc1976be8b8c97c7
 
