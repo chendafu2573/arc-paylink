@@ -1,0 +1,8 @@
+{
+  "agentId": "851241",
+  "description": "Arc Paylink autonomous settlement verification job",
+  "budget": "0.1",
+  "expirySeconds": 3600,
+  "deliverable": "Arc Paylink Agent #851241 verified policy-bounded autonomous settlement on Arc Testnet",
+  "completionReason": "deliverable-approved"
+}

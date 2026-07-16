@@ -11,6 +11,7 @@
     "agent:register": "node scripts/register-agent-identity.mjs",
     "agent:dry-run": "node scripts/run-payment-agent.mjs",
     "agent:execute": "node scripts/run-payment-agent.mjs --execute",
+    "agent:erc8183": "node scripts/run-erc8183-job.mjs",
     "contract:deploy": "node scripts/deploy-escrow.mjs",
     "contract:verify": "node scripts/verify-escrow.mjs",
     "build": "tsc -b && vite build",
