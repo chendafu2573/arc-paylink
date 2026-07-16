@@ -133,7 +133,8 @@ label small { color: var(--muted); }
 .policy-card dl div { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(244,241,232,.15); }
 .policy-card dt { color: #89938e; font-size: 11px; }
 .policy-card dd { margin: 0; font: 12px "DM Mono"; }
-.policy-card > a { color: var(--lime); font-size: 11px; }
+.policy-links { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.policy-links a { color: var(--lime); font-size: 11px; }
 .agent-execute { display: flex; gap: 8px; margin-top: 24px; }
 .agent-execute input { min-width: 0; width: 35%; padding: 12px; color: var(--paper); background: transparent; border: 1px solid rgba(244,241,232,.35); font: 13px "DM Mono"; }
 .agent-execute button { flex: 1; color: var(--ink); background: var(--lime); border: 0; font-weight: 600; }

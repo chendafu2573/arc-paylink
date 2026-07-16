@@ -1,0 +1,16 @@
+{
+  "name": "Arc Paylink Settlement Agent",
+  "description": "Autonomous Arc Testnet payment agent that settles verified jobs through a policy-bounded USDC vault.",
+  "image": "https://13-212-95-171.sslip.io/arc-paylink-agent.svg",
+  "agent_type": "payment_settlement",
+  "capabilities": [
+    "policy_bounded_payments",
+    "recipient_allowlist_enforcement",
+    "budget_and_expiry_checks",
+    "onchain_settlement_evidence"
+  ],
+  "version": "1.0.0",
+  "network": "Arc Testnet",
+  "project_url": "https://13-212-95-171.sslip.io",
+  "source_url": "https://github.com/chendafu2573/arc-paylink"
+}

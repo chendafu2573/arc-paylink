@@ -31,6 +31,8 @@ import {
   readAgentVault,
   type AgentVaultPolicy,
 } from "./agentVault";
+import agentIdentity from "./generated/agent-identity.json";
+import agentExecution from "../public/agent-runs/latest-execution.json";
 
 type Status = "idle" | "connecting" | "signing" | "confirming" | "success" | "error";
 
@@ -488,8 +490,14 @@ export default function App() {
               <div><dt>{tr("单笔上限", "Payment cap")}</dt><dd>{agentPolicy?.maxPerPayment ?? "0.1"} USDC</dd></div>
               <div><dt>{tr("已使用", "Spent")}</dt><dd>{agentPolicy?.spent ?? "0.01"} USDC</dd></div>
               <div><dt>Agent</dt><dd>{agentPolicy ? compactAddress(agentPolicy.agent) : "0x4f90…8827"}</dd></div>
+              <div><dt>ERC-8004 ID</dt><dd>#{agentIdentity.agentId}</dd></div>
+              <div><dt>{tr("最后决策", "Latest decision")}</dt><dd>{agentExecution.decision}</dd></div>
             </dl>
-            <a href={`${arcTestnet.blockExplorers.default.url}/address/${agentVaultAddress}`} target="_blank" rel="noreferrer">{tr("在 ArcScan 验证合约 ↗", "Verify contract on ArcScan ↗")}</a>
+            <div className="policy-links">
+              <a href={`${arcTestnet.blockExplorers.default.url}/address/${agentIdentity.registry}`} target="_blank" rel="noreferrer">{tr("验证 Agent 身份 ↗", "Verify agent identity ↗")}</a>
+              <a href={`${arcTestnet.blockExplorers.default.url}/tx/${agentExecution.transactionHash}`} target="_blank" rel="noreferrer">{tr("验证自主付款 ↗", "Verify autonomous payment ↗")}</a>
+              <a href={`${arcTestnet.blockExplorers.default.url}/address/${agentVaultAddress}`} target="_blank" rel="noreferrer">{tr("验证策略合约 ↗", "Verify policy contract ↗")}</a>
+            </div>
             <div className="agent-execute"><input type="number" min="0" value={agentPaymentAmount} onChange={(event) => setAgentPaymentAmount(event.target.value)} /><button onClick={handleAgentPayment} disabled={isBusy || !isAddress(agentRecipient) || Number(agentPaymentAmount) <= 0}>{tr("执行受限付款", "Execute bounded payment")}</button></div>
             {agentMessage && <p className={`agent-message ${status}`}>{agentMessage}</p>}
           </div>

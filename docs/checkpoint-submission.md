@@ -26,6 +26,8 @@ A wallet address does not contain payment context or delivery conditions. Existi
 - Three-minute product demo and pitch deck ready for review
 - Agent Vault deployed with a 1 USDC budget, 0.1 USDC per-payment cap, recipient allowlist, and seven-day expiry
 - Successful bounded Agent payment plus verified duplicate-ID and over-limit rejection paths
+- ERC-8004 Settlement Agent registered on Arc Testnet as Agent ID 851241
+- Autonomous runner checks task approval, signal freshness, vault status, recipient allowlist, budget, balance, payment cap, and replay protection before settlement
 
 ## Links
 
@@ -37,6 +39,8 @@ A wallet address does not contain payment context or delivery conditions. Existi
 - Contract: https://testnet.arcscan.app/address/0xcc5ae59000d5b3d1886317f7554dc5894aea6c4d
 - Agent Vault: https://testnet.arcscan.app/address/0x7af6b4261bf83823a83fa9b6614676db68a88fba
 - Agent payment: https://testnet.arcscan.app/tx/0xb505a7982b5605fde9173771b182cec814efd5701265ef04205090f08d963f0f
+- ERC-8004 registration: https://testnet.arcscan.app/tx/0x29dbdce7da8b59b5f2917495b4b4582013079de179cd74b50f487f9590efa4bc
+- Autonomous settlement: https://testnet.arcscan.app/tx/0x530b182a6e9a129873e62519629a61d02236fe52c0b22ca9fa07d38cb35fa7ad
 - Fund transaction: https://testnet.arcscan.app/tx/0x8eaa28e4ac6431ff73d21b1c92338b3a1dbe3533cd5d4876c658dcd917779c74
 - Release transaction: https://testnet.arcscan.app/tx/0x05f37466ad220a1639cc82f427c9b4b5cc43041dc6751ea6fc1976be8b8c97c7
 
