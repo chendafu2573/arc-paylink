@@ -37,7 +37,8 @@ A wallet address does not contain payment context or delivery conditions. Existi
 - HTTP fallback: http://13.212.95.171
 - Live proof: https://13-212-95-171.sslip.io/?escrow=0x51a8242e1a04a1557b18a85d3e2da62d9b2eff92e1657b389ab331392b5c5c6f
 - Source: https://github.com/chendafu2573/arc-paylink
-- Demo video: https://github.com/chendafu2573/arc-paylink/blob/main/outputs/arc-paylink-demo.mp4
+- Demo video: http://13.212.95.171/arc-paylink-demo.mp4
+- Pitch deck: http://13.212.95.171/arc-paylink-pitch.pptx
 - Contract: https://testnet.arcscan.app/address/0xcc5ae59000d5b3d1886317f7554dc5894aea6c4d
 - Agent Vault: https://testnet.arcscan.app/address/0x7af6b4261bf83823a83fa9b6614676db68a88fba
 - Agent payment: https://testnet.arcscan.app/tx/0xb505a7982b5605fde9173771b182cec814efd5701265ef04205090f08d963f0f
@@ -53,4 +54,4 @@ A wallet address does not contain payment context or delivery conditions. Existi
 
 ## Next milestone
 
-Add Gateway-backed settlement status, gather user feedback from the Arc community, and polish the final submission.
+Record the updated agentic demo, gather structured user feedback from the Arc community, and add reusable agent receipts that link policy decisions, ERC-8183 jobs, and x402 transfers into one portable proof object.
