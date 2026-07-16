@@ -87,5 +87,12 @@
     }
   },
   "receiptId": "sha256:8cbb1bfea009da74ba27ddf40060f305a5233bc91341b42277eff3513a1fad6a",
-  "issuedAt": "2026-07-16T18:50:56.744Z"
+  "issuedAt": "2026-07-16T18:50:56.744Z",
+  "attestation": {
+    "scheme": "EIP-191",
+    "message": "Arc Paylink Agent Receipt\nsha256:8cbb1bfea009da74ba27ddf40060f305a5233bc91341b42277eff3513a1fad6a\nNetwork: eip155:5042002",
+    "signer": "0x4f9011fCba9B69Bfa839604a70434674Fbf78827",
+    "signature": "0x1b19cefab9002b6b96123a93c06e17576e186faf820e89f6f905e3aab7842fa85d8c2058608fcaf5ba1dcf8b11772c62e8f6297a82c5ba6b9934a44253ef42101b",
+    "verified": true
+  }
 }

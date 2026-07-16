@@ -6,8 +6,11 @@ import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { recoverMessageAddress } from "viem";
+import { mnemonicToAccount } from "viem/accounts";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const walletPath = process.env.ARC_TEST_WALLET_PATH ?? "/Users/chendafu/.config/arc-builder/test-wallet.json";
 
 async function readJson(relativePath) {
   return JSON.parse(await readFile(path.join(root, relativePath), "utf8"));
@@ -101,10 +104,28 @@ const receiptCore = {
   verification: { status: "verified", checks },
 };
 
+const receiptId = digest(receiptCore);
+const attestationMessage = `Arc Paylink Agent Receipt\n${receiptId}\nNetwork: eip155:5042002`;
+const walletBackup = JSON.parse(await readFile(walletPath, "utf8"));
+const account = mnemonicToAccount(walletBackup.mnemonic, { path: walletBackup.derivationPath });
+if (!sameAddress(account.address, identity.owner) || !sameAddress(walletBackup.address, identity.owner)) {
+  throw new Error("Receipt signer does not match the ERC-8004 owner");
+}
+const signature = await account.signMessage({ message: attestationMessage });
+const recoveredSigner = await recoverMessageAddress({ message: attestationMessage, signature });
+if (!sameAddress(recoveredSigner, identity.owner)) throw new Error("Receipt signature recovery failed");
+
 const receipt = {
   ...receiptCore,
-  receiptId: digest(receiptCore),
+  receiptId,
   issuedAt: gateway.verifiedAt,
+  attestation: {
+    scheme: "EIP-191",
+    message: attestationMessage,
+    signer: recoveredSigner,
+    signature,
+    verified: true,
+  },
 };
 
 const serialized = `${JSON.stringify(receipt, null, 2)}\n`;

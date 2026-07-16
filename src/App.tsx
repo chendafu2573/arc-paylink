@@ -500,6 +500,7 @@ export default function App() {
               <div><dt>x402 Nanopayment</dt><dd>{gatewayProof.amount} USDC · HTTP {gatewayProof.httpStatus}</dd></div>
               <div><dt>Gateway</dt><dd>{gatewayProof.transferStatus}</dd></div>
               <div><dt>Agent Receipt</dt><dd>{agentReceipt.verification.status} · {agentReceipt.receiptId.slice(7, 15)}…</dd></div>
+              <div><dt>{tr("Receipt 签名", "Receipt signature")}</dt><dd>{agentReceipt.attestation.verified ? `EIP-191 · ${compactAddress(agentReceipt.attestation.signer as Address)}` : tr("无效", "Invalid")}</dd></div>
             </dl>
             <div className="policy-links">
               <a href={`${arcTestnet.blockExplorers.default.url}/address/${agentIdentity.registry}`} target="_blank" rel="noreferrer">{tr("验证 Agent 身份 ↗", "Verify agent identity ↗")}</a>

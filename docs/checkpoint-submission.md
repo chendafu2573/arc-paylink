@@ -30,7 +30,7 @@ A wallet address does not contain payment context or delivery conditions. Existi
 - Autonomous runner checks task approval, signal freshness, vault status, recipient allowlist, budget, balance, payment cap, and replay protection before settlement
 - Official ERC-8183 Job #158446 completed the full Open → Funded → Submitted → Completed lifecycle with a separate provider wallet and 0.1 USDC escrow settlement
 - Circle Gateway deposited 0.5 test USDC, then Agent #851241 paid 0.01 USDC gaslessly through x402 to retrieve the verified ERC-8183 settlement signal
-- Unified Agent Receipt cross-validates identity, policy execution, ERC-8183 settlement, and the x402 transfer under one stable SHA-256 receipt ID
+- Unified Agent Receipt cross-validates identity, policy execution, ERC-8183 settlement, and the x402 transfer under one stable SHA-256 receipt ID, then binds it to the ERC-8004 owner with a publicly recoverable EIP-191 signature
 
 ## Links
 
