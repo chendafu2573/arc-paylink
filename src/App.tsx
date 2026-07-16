@@ -24,6 +24,13 @@ import {
   saveEscrow,
   type EscrowRecord,
 } from "./escrow";
+import {
+  demoAgentVault,
+  deployAgentVault,
+  executeAgentPayment,
+  readAgentVault,
+  type AgentVaultPolicy,
+} from "./agentVault";
 
 type Status = "idle" | "connecting" | "signing" | "confirming" | "success" | "error";
 
@@ -32,6 +39,10 @@ const initialRecipient = params.get("to") ?? import.meta.env.VITE_DEFAULT_RECIPI
 const initialAmount = params.get("amount") ?? "";
 const initialNote = params.get("note") ?? "";
 const initialMode = params.get("mode") === "protected" ? "protected" : "direct";
+const expiresParam = Number(params.get("expires"));
+const initialExpiresAt = Number.isSafeInteger(expiresParam) && expiresParam > 0 ? expiresParam : undefined;
+const isSharedRequest = params.has("to") && params.has("amount");
+const defaultExpiresAt = initialExpiresAt ?? (isSharedRequest ? undefined : Math.floor(Date.now() / 1000) + 24 * 60 * 60);
 const escrowParam = params.get("escrow");
 const initialEscrowId = isPaymentId(escrowParam) ? escrowParam : undefined;
 const initialEscrows = loadEscrows();
@@ -51,6 +62,7 @@ export default function App() {
   const [amount, setAmount] = useState(initialAmount);
   const [note, setNote] = useState(initialNote);
   const [paymentMode, setPaymentMode] = useState<"direct" | "protected">(initialMode);
+  const [requestExpiresAt] = useState(defaultExpiresAt);
   const [account, setAccount] = useState<Address>();
   const [balance, setBalance] = useState("");
   const [status, setStatus] = useState<Status>("idle");
@@ -62,6 +74,14 @@ export default function App() {
   const [copied, setCopied] = useState(false);
   const [escrowLinkCopied, setEscrowLinkCopied] = useState(false);
   const [qrCode, setQrCode] = useState({ url: "", data: "" });
+  const [agentAddress, setAgentAddress] = useState("");
+  const [agentRecipient, setAgentRecipient] = useState("");
+  const [agentBudget, setAgentBudget] = useState("1");
+  const [agentLimit, setAgentLimit] = useState("0.1");
+  const [agentPaymentAmount, setAgentPaymentAmount] = useState("0.01");
+  const [agentVaultAddress, setAgentVaultAddress] = useState<Address>(demoAgentVault);
+  const [agentPolicy, setAgentPolicy] = useState<AgentVaultPolicy>();
+  const [agentMessage, setAgentMessage] = useState("");
   const tr = (zh: string, en: string) => language === "zh" ? zh : en;
   const runningOnFallback = window.location.protocol === "http:";
 
@@ -74,8 +94,9 @@ export default function App() {
     url.searchParams.set("amount", amount);
     if (note.trim()) url.searchParams.set("note", note.trim());
     if (paymentMode === "protected") url.searchParams.set("mode", "protected");
+    if (requestExpiresAt) url.searchParams.set("expires", String(requestExpiresAt));
     return url.toString();
-  }, [amount, note, paymentMode, recipient, validAmount, validRecipient]);
+  }, [amount, note, paymentMode, recipient, requestExpiresAt, validAmount, validRecipient]);
 
   useEffect(() => {
     if (!requestUrl) return;
@@ -115,6 +136,11 @@ export default function App() {
     return () => window.clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    if (!isAddress(agentVaultAddress)) return;
+    readAgentVault(agentVaultAddress).then(setAgentPolicy).catch(() => undefined);
+  }, [agentVaultAddress]);
+
   async function handleConnect() {
     setStatus("connecting");
     setMessage("");
@@ -124,9 +150,50 @@ export default function App() {
       setBalance(Number(connected.balance).toFixed(4));
       setStatus("idle");
       if (!recipient) setRecipient(connected.account);
+      if (!agentAddress) setAgentAddress(connected.account);
+      if (!agentRecipient) setAgentRecipient(connected.account);
     } catch (error) {
       setStatus("error");
       setMessage(friendlyError(error, language));
+    }
+  }
+
+  async function handleDeployAgentVault() {
+    if (!isAddress(agentAddress) || !isAddress(agentRecipient)) return;
+    setStatus("signing");
+    setAgentMessage(tr("请在钱包中确认创建并充值 Agent Vault。", "Confirm Agent Vault creation and funding in your wallet."));
+    try {
+      const result = await deployAgentVault(agentAddress, agentRecipient, agentBudget, agentLimit);
+      setHash(result.hash);
+      setStatus("confirming");
+      const receipt = await waitForPayment(result.hash);
+      if (receipt.status !== "success" || !receipt.contractAddress) throw new Error("Agent Vault 创建失败。");
+      setAgentVaultAddress(receipt.contractAddress);
+      setAgentPolicy(await readAgentVault(receipt.contractAddress));
+      setStatus("success");
+      setAgentMessage(tr("Agent Vault 已创建，权限边界现在由合约强制执行。", "Agent Vault created. Its limits are now enforced onchain."));
+    } catch (error) {
+      setStatus("error");
+      setAgentMessage(friendlyError(error, language));
+    }
+  }
+
+  async function handleAgentPayment() {
+    if (!isAddress(agentVaultAddress) || !isAddress(agentRecipient)) return;
+    setStatus("signing");
+    setAgentMessage(tr("请使用策略指定的 Agent 钱包确认付款。", "Confirm with the agent wallet authorized by this policy."));
+    try {
+      const txHash = await executeAgentPayment(agentVaultAddress, agentRecipient, agentPaymentAmount);
+      setHash(txHash);
+      setStatus("confirming");
+      const receipt = await waitForPayment(txHash);
+      if (receipt.status !== "success") throw new Error("Agent payment failed.");
+      setAgentPolicy(await readAgentVault(agentVaultAddress));
+      setStatus("success");
+      setAgentMessage(tr("Agent 付款成功，预算消耗已在链上更新。", "Agent payment confirmed. Policy spend is updated onchain."));
+    } catch (error) {
+      setStatus("error");
+      setAgentMessage(friendlyError(error, language));
     }
   }
 
@@ -163,6 +230,11 @@ export default function App() {
 
   async function handlePay() {
     if (!validRecipient || !validAmount) return;
+    if (requestExpiresAt && now >= requestExpiresAt) {
+      setStatus("error");
+      setMessage(tr("这条付款请求已经过期，请让收款方生成新链接。", "This payment request has expired. Ask the recipient for a new link."));
+      return;
+    }
     setStatus("signing");
     setMessage(tr("请在钱包中确认这笔测试网交易。", "Confirm this testnet transaction in your wallet."));
     setHash(undefined);
@@ -255,6 +327,9 @@ export default function App() {
 
   const refundRemaining = escrow?.status === "funded" ? Math.max(0, escrow.refundAfter - now) : 0;
   const refundCountdown = `${String(Math.floor(refundRemaining / 3600)).padStart(2, "0")}:${String(Math.floor(refundRemaining % 3600 / 60)).padStart(2, "0")}:${String(refundRemaining % 60).padStart(2, "0")}`;
+  const requestRemaining = requestExpiresAt ? Math.max(0, requestExpiresAt - now) : undefined;
+  const requestExpired = requestRemaining === 0;
+  const requestCountdown = requestRemaining === undefined ? "" : `${String(Math.floor(requestRemaining / 3600)).padStart(2, "0")}:${String(Math.floor(requestRemaining % 3600 / 60)).padStart(2, "0")}:${String(requestRemaining % 60).padStart(2, "0")}`;
 
   const isBusy = ["connecting", "signing", "confirming"].includes(status);
 
@@ -331,12 +406,16 @@ export default function App() {
             <input maxLength={80} value={note} onChange={(event) => setNote(event.target.value)} placeholder="设计服务 / 订单 #1042" />
           </div>
 
+          {requestExpiresAt && <p className="balance">{requestExpired
+            ? tr("付款请求已过期", "Payment request expired")
+            : `${tr("付款请求剩余", "Request expires in")}: ${requestCountdown}`}</p>}
+
           {account && <p className="balance">{tr("当前钱包余额", "Wallet balance")}: {balance} USDC</p>}
           <div className="actions">
-            <button className="primary" onClick={handlePay} disabled={!validRecipient || !validAmount || isBusy}>
+            <button className="primary" onClick={handlePay} disabled={!validRecipient || !validAmount || requestExpired || isBusy}>
               {status === "signing" ? tr("等待钱包确认…", "Confirm in wallet…") : status === "confirming" ? tr("链上确认中…", "Confirming onchain…") : paymentMode === "protected" ? tr("存入 USDC 托管", "Fund USDC escrow") : tr("支付这笔请求", "Pay this invoice")}
             </button>
-            <button className="secondary" onClick={handleCopy} disabled={!requestUrl}>{copied ? tr("已复制", "Copied") : tr("复制收款链接", "Copy invoice link")}</button>
+            <button className="secondary" onClick={handleCopy} disabled={!requestUrl || requestExpired}>{copied ? tr("已复制", "Copied") : tr("复制收款链接", "Copy invoice link")}</button>
           </div>
           {escrow && <div className="escrow-card">
             <div><span>{tr("最近托管订单", "Selected escrow")}</span><strong>{escrow.status === "funded" ? tr("托管中", "Funded") : escrow.status === "released" ? tr("已放款", "Released") : tr("已退款", "Refunded")}</strong></div>
@@ -377,11 +456,44 @@ export default function App() {
             <div className="receipt-line"><span>{tr("收款方", "Recipient")}</span><strong>{validRecipient ? compactAddress(recipient) : tr("等待地址", "Add address")}</strong></div>
             <div className="receipt-line"><span>{tr("网络", "Network")}</span><strong>Arc Testnet</strong></div>
             <div className="receipt-line"><span>{tr("结算", "Settlement")}</span><strong>{paymentMode === "protected" ? tr("24h 托管保护", "24h escrow protection") : tr("即时到账", "Immediate")}</strong></div>
+            <div className="receipt-line"><span>{tr("有效期", "Expiry")}</span><strong>{requestExpiresAt ? requestExpired ? tr("已过期", "Expired") : requestCountdown : tr("旧链接无限制", "Legacy link")}</strong></div>
             <div className="receipt-line"><span>{tr("备注", "Note")}</span><strong>{note || "—"}</strong></div>
-            <div className="qr-wrap">{requestUrl && qrCode.url === requestUrl ? <img src={qrCode.data} alt={tr("收款链接二维码", "Invoice QR code")} /> : <div className="qr-placeholder">{tr("填写有效信息", "Enter valid details")}<br />{tr("生成二维码", "to create a QR code")}</div>}</div>
+            <div className="qr-wrap">{requestUrl && !requestExpired && qrCode.url === requestUrl ? <img src={qrCode.data} alt={tr("收款链接二维码", "Invoice QR code")} /> : <div className="qr-placeholder">{requestExpired ? tr("付款请求已过期", "Payment request expired") : tr("填写有效信息", "Enter valid details")}<br />{requestExpired ? tr("请生成新链接", "Create a new link") : tr("生成二维码", "to create a QR code")}</div>}</div>
           </div>
           <p className="disclaimer">{tr("仅限测试网。测试 USDC 没有现实货币价值。", "Testnet only. Test USDC has no real-world value.")}</p>
         </aside>
+      </section>
+
+      <section className="agent-section">
+        <div className="section-heading">
+          <span className="step-number">03</span>
+          <div><p className="eyebrow">AGENTIC PAYMENTS</p><h2>{tr("给 Agent 预算，不给无限权限", "Give agents a budget—not unlimited wallet access")}</h2><p>{tr("单笔上限、总预算、白名单和七天有效期全部由 Arc 合约执行。", "Per-payment caps, total budget, recipient allowlist and a seven-day expiry are enforced by an Arc smart contract.")}</p></div>
+        </div>
+        <div className="agent-grid">
+          <div className="agent-form">
+            <label>{tr("Agent 钱包", "Agent wallet")}</label>
+            <input value={agentAddress} onChange={(event) => setAgentAddress(event.target.value.trim())} placeholder="0x…" />
+            <label>{tr("允许的收款方", "Allowed recipient")}</label>
+            <input value={agentRecipient} onChange={(event) => setAgentRecipient(event.target.value.trim())} placeholder="0x…" />
+            <div className="agent-amounts">
+              <label>{tr("总预算", "Total budget")}<span><input type="number" min="0" value={agentBudget} onChange={(event) => setAgentBudget(event.target.value)} /> USDC</span></label>
+              <label>{tr("单笔上限", "Per-payment cap")}<span><input type="number" min="0" value={agentLimit} onChange={(event) => setAgentLimit(event.target.value)} /> USDC</span></label>
+            </div>
+            <button className="primary agent-create" onClick={handleDeployAgentVault} disabled={isBusy || !isAddress(agentAddress) || !isAddress(agentRecipient) || Number(agentBudget) <= 0 || Number(agentLimit) <= 0 || Number(agentLimit) > Number(agentBudget)}>{tr("创建并充值策略金库", "Create and fund policy vault")}</button>
+          </div>
+          <div className="policy-card">
+            <div className="policy-title"><span>{tr("链上策略证明", "Live policy proof")}</span><strong>{agentPolicy?.revoked ? tr("已撤销", "Revoked") : tr("生效中", "Active")}</strong></div>
+            <dl>
+              <div><dt>{tr("总预算", "Total budget")}</dt><dd>{agentPolicy?.totalBudget ?? "1"} USDC</dd></div>
+              <div><dt>{tr("单笔上限", "Payment cap")}</dt><dd>{agentPolicy?.maxPerPayment ?? "0.1"} USDC</dd></div>
+              <div><dt>{tr("已使用", "Spent")}</dt><dd>{agentPolicy?.spent ?? "0.01"} USDC</dd></div>
+              <div><dt>Agent</dt><dd>{agentPolicy ? compactAddress(agentPolicy.agent) : "0x4f90…8827"}</dd></div>
+            </dl>
+            <a href={`${arcTestnet.blockExplorers.default.url}/address/${agentVaultAddress}`} target="_blank" rel="noreferrer">{tr("在 ArcScan 验证合约 ↗", "Verify contract on ArcScan ↗")}</a>
+            <div className="agent-execute"><input type="number" min="0" value={agentPaymentAmount} onChange={(event) => setAgentPaymentAmount(event.target.value)} /><button onClick={handleAgentPayment} disabled={isBusy || !isAddress(agentRecipient) || Number(agentPaymentAmount) <= 0}>{tr("执行受限付款", "Execute bounded payment")}</button></div>
+            {agentMessage && <p className={`agent-message ${status}`}>{agentMessage}</p>}
+          </div>
+        </div>
       </section>
 
       <footer><span>Built on Arc Testnet</span><a href="https://docs.arc.network" target="_blank" rel="noreferrer">{tr("开发文档 ↗", "Developer docs ↗")}</a><a href="https://faucet.circle.com" target="_blank" rel="noreferrer">{tr("领取测试 USDC ↗", "Get test USDC ↗")}</a></footer>

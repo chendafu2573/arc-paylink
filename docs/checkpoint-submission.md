@@ -17,12 +17,15 @@ A wallet address does not contain payment context or delivery conditions. Existi
 
 - Functional public MVP on Arc Testnet
 - Direct native USDC payment links and QR codes
+- Time-bounded payment requests with pre-signing expiry enforcement
 - Delivery-protected escrow with release and timeout refund
 - Onchain order recovery after page refresh
 - Shareable public order-status links backed by direct contract reads
 - Public contract, source repository, and ArcScan evidence
 - Automated verification of deployed bytecode and released test order
 - Three-minute product demo and pitch deck ready for review
+- Agent Vault deployed with a 1 USDC budget, 0.1 USDC per-payment cap, recipient allowlist, and seven-day expiry
+- Successful bounded Agent payment plus verified duplicate-ID and over-limit rejection paths
 
 ## Links
 
@@ -32,9 +35,11 @@ A wallet address does not contain payment context or delivery conditions. Existi
 - Source: https://github.com/chendafu2573/arc-paylink
 - Demo video: https://github.com/chendafu2573/arc-paylink/blob/main/outputs/arc-paylink-demo.mp4
 - Contract: https://testnet.arcscan.app/address/0xcc5ae59000d5b3d1886317f7554dc5894aea6c4d
+- Agent Vault: https://testnet.arcscan.app/address/0x7af6b4261bf83823a83fa9b6614676db68a88fba
+- Agent payment: https://testnet.arcscan.app/tx/0xb505a7982b5605fde9173771b182cec814efd5701265ef04205090f08d963f0f
 - Fund transaction: https://testnet.arcscan.app/tx/0x8eaa28e4ac6431ff73d21b1c92338b3a1dbe3533cd5d4876c658dcd917779c74
 - Release transaction: https://testnet.arcscan.app/tx/0x05f37466ad220a1639cc82f427c9b4b5cc43041dc6751ea6fc1976be8b8c97c7
 
 ## Next milestone
 
-Add explicit agent-payment controls and Gateway-backed settlement status, gather user feedback from the Arc community, and polish the final submission.
+Add Gateway-backed settlement status, gather user feedback from the Arc community, and polish the final submission.

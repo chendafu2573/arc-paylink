@@ -116,6 +116,29 @@ label small { color: var(--muted); }
 .qr-wrap img { width: 100%; height: 100%; }
 .qr-placeholder { color: var(--muted); text-align: center; font: 10px/1.6 "DM Mono"; }
 .disclaimer { color: #89938e; text-align: center; font: 10px "DM Mono"; margin: 16px 0 0; }
+.agent-section { padding: 72px 64px; border: 1px solid var(--line); border-top: 0; }
+.agent-section .section-heading { max-width: 720px; }
+.agent-section .eyebrow { margin-bottom: 8px; color: var(--muted); }
+.agent-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 54px; }
+.agent-form > input { width: 100%; padding: 13px 2px; color: var(--ink); background: transparent; border: 0; border-bottom: 1px solid var(--ink); outline: 0; font: 14px "DM Mono"; }
+.agent-amounts { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.agent-amounts label { display: block; }
+.agent-amounts label span { display: flex; align-items: center; gap: 7px; margin-top: 9px; font-size: 10px; }
+.agent-amounts input { min-width: 0; width: 100%; padding: 11px; background: transparent; border: 1px solid var(--line); font: 18px "DM Mono"; }
+.agent-create { width: 100%; min-height: 50px; margin-top: 28px; border: 1px solid var(--ink); font-weight: 600; }
+.policy-card { padding: 26px; color: var(--paper); background: var(--ink); }
+.policy-title { display: flex; justify-content: space-between; font: 11px "DM Mono"; text-transform: uppercase; }
+.policy-title strong { color: var(--lime); }
+.policy-card dl { margin: 26px 0; }
+.policy-card dl div { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(244,241,232,.15); }
+.policy-card dt { color: #89938e; font-size: 11px; }
+.policy-card dd { margin: 0; font: 12px "DM Mono"; }
+.policy-card > a { color: var(--lime); font-size: 11px; }
+.agent-execute { display: flex; gap: 8px; margin-top: 24px; }
+.agent-execute input { min-width: 0; width: 35%; padding: 12px; color: var(--paper); background: transparent; border: 1px solid rgba(244,241,232,.35); font: 13px "DM Mono"; }
+.agent-execute button { flex: 1; color: var(--ink); background: var(--lime); border: 0; font-weight: 600; }
+.agent-message { margin: 14px 0 0; color: #aab2ae; font-size: 11px; }
+.agent-message.error { color: #f09b91; }
 footer { min-height: 90px; display: flex; align-items: center; gap: 30px; border-top: 1px solid var(--line); font: 11px "DM Mono"; }
 footer span { margin-right: auto; }
 
@@ -127,6 +150,8 @@ footer span { margin-right: auto; }
   .hero { padding: 64px 0 54px; }
   .access-banner { align-items: flex-start; flex-direction: column; gap: 10px; }
   .workspace { grid-template-columns: 1fr; }
+  .agent-section { padding: 48px 24px; }
+  .agent-grid { grid-template-columns: 1fr; gap: 28px; }
   .proof-banner { align-items: flex-start; flex-direction: column; gap: 8px; }
   .actions { flex-direction: column; }
   footer { flex-wrap: wrap; padding: 25px 0; gap: 14px; }
