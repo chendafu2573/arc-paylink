@@ -13,5 +13,13 @@
 }
 
 http://13.212.95.171 {
-	redir https://13-212-95-171.sslip.io{uri} permanent
+	root * /var/www/arc-paylink
+	encode zstd gzip
+	try_files {path} /index.html
+	file_server
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+	}
 }

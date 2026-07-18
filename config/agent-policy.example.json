@@ -1,0 +1,6 @@
+{
+  "vault": "0x7af6b4261bf83823a83fa9b6614676db68a88fba",
+  "agentId": "851241",
+  "maxSignalAgeSeconds": 86400,
+  "requiredStatus": "approved"
+}

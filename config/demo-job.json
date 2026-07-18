@@ -1,0 +1,9 @@
+{
+  "jobId": "arc-paylink-checkpoint-2-demo-v2",
+  "status": "approved",
+  "recipient": "0x4f9011fCba9B69Bfa839604a70434674Fbf78827",
+  "amount": "0.01",
+  "deliverableHash": "0xa0e5c4e8d6d58a644a512564f2fa4d66f486f87eb2c740f889aaac2a7c4f1488",
+  "approvedAt": "2026-07-16T18:00:00.000Z",
+  "expiresAt": "2026-07-24T03:00:00.000Z"
+}

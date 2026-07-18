@@ -1,0 +1,23 @@
+{
+  "agentId": "851241",
+  "agentAddress": "0x4f9011fCba9B69Bfa839604a70434674Fbf78827",
+  "vault": "0x7af6b4261bf83823a83fa9b6614676db68a88fba",
+  "jobId": "arc-paylink-checkpoint-2-demo-v2",
+  "deliverableHash": "0xa0e5c4e8d6d58a644a512564f2fa4d66f486f87eb2c740f889aaac2a7c4f1488",
+  "paymentId": "0x6a2c97a2e9a7edb2e6a556ce3167744a7f81294fc5fc72eae4205604c66fb89f",
+  "amount": "0.01 USDC",
+  "decision": "rejected",
+  "checks": {
+    "identityMatchesPolicy": true,
+    "approvedStatus": true,
+    "validTimestamps": true,
+    "freshSignal": true,
+    "vaultActive": true,
+    "recipientAllowed": true,
+    "underPaymentCap": true,
+    "underTotalBudget": true,
+    "vaultFunded": true,
+    "replaySafe": false
+  },
+  "evaluatedAt": "2026-07-16T18:31:30.221Z"
+}

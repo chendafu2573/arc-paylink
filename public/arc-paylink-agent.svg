@@ -1,0 +1,7 @@
+<!-- 本文件为 ERC-8004 Agent 元数据提供稳定的公开头像，保持纯矢量以便静态部署和长期维护。 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Arc Paylink Settlement Agent">
+  <rect width="512" height="512" rx="96" fill="#07110d"/>
+  <path d="M132 358 232 126h48l100 232h-62l-19-49h-88l-18 49h-61Zm99-101h49l-24-68-25 68Z" fill="#c8ff3d"/>
+  <circle cx="386" cy="126" r="34" fill="#f4f1e8"/>
+  <path d="m371 126 10 10 20-23" fill="none" stroke="#07110d" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
