@@ -114,4 +114,10 @@ npm run agent:receipt:anchor
 
 `agent:receipt:verify` 不读取钱包文件：它仅根据公开 Receipt 重算内容摘要、恢复 EIP-191 签名地址，并核对该地址与 ERC-8004 owner 是否一致。
 
+第三方也可以直接验证线上公开证明，不需要先克隆仓库里的 JSON：
+
+```bash
+npm run agent:receipt:verify -- http://13.212.95.171/agent-receipt.json
+```
+
 测试网收款地址：`0x4f9011fCba9B69Bfa839604a70434674Fbf78827`

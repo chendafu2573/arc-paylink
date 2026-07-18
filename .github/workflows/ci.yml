@@ -1,0 +1,26 @@
+# 本文件用于在 GitHub 上持续验证 Arc Paylink 构建、代码规范和公开 Agent Receipt。
+# 核心流程使用锁文件安装依赖后执行 build、lint 与链上锚点验证；维护时避免加入需要助记词的生成或交易命令。
+name: CI
+
+on:
+  push:
+    branches: [main, agent/arc-paylink]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm run lint
+      - run: npm run agent:receipt:verify

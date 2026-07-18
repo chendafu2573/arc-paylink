@@ -10,8 +10,22 @@ import { createPublicClient, http, recoverMessageAddress, stringToHex } from "vi
 import { arcTestnet } from "viem/chains";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const receiptPath = process.argv[2] ?? path.join(root, "public/agent-receipt.json");
-const receipt = JSON.parse(await readFile(receiptPath, "utf8"));
+const receiptSource = process.argv[2] ?? path.join(root, "public/agent-receipt.json");
+
+function isHttpUrl(value) {
+  return /^https?:\/\//i.test(value);
+}
+
+async function readReceipt(source) {
+  if (isHttpUrl(source)) {
+    const response = await fetch(source);
+    if (!response.ok) throw new Error(`Unable to fetch receipt: ${response.status} ${response.statusText}`);
+    return JSON.parse(await response.text());
+  }
+  return JSON.parse(await readFile(source, "utf8"));
+}
+
+const receipt = await readReceipt(receiptSource);
 
 function stable(value) {
   if (Array.isArray(value)) return value.map(stable);
