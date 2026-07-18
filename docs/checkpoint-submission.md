@@ -38,6 +38,7 @@ A wallet address does not contain payment context or delivery conditions. Existi
 - HTTP fallback: http://13.212.95.171
 - Live proof: https://13-212-95-171.sslip.io/?escrow=0x51a8242e1a04a1557b18a85d3e2da62d9b2eff92e1657b389ab331392b5c5c6f
 - Source: https://github.com/chendafu2573/arc-paylink
+- Stable release: https://github.com/chendafu2573/arc-paylink/releases/tag/v0.1.0
 - Demo video: http://13.212.95.171/arc-paylink-demo.mp4
 - Pitch deck: http://13.212.95.171/arc-paylink-pitch.pptx
 - Contract: https://testnet.arcscan.app/address/0xcc5ae59000d5b3d1886317f7554dc5894aea6c4d
